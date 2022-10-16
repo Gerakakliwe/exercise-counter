@@ -50,10 +50,10 @@ class App:
                                    command=lambda: self.model.train_model(self.counters))
         self.btn_train.pack(anchor=tk.CENTER, expand=True)
 
-        self.btn_reset = tk.Button(self.window, text="Train Model", width=50, command=self.reset)
+        self.btn_reset = tk.Button(self.window, text="Reset", width=50, command=self.reset)
         self.btn_reset.pack(anchor=tk.CENTER, expand=True)
 
-        self.counter_label = tk.Label(self.window, text=f"f{self.rep_counter}")
+        self.counter_label = tk.Label(self.window, text=f"{self.rep_counter}")
         self.counter_label.config(font=("Arial", 24))
         self.counter_label.pack(anchor=tk.CENTER, expand=True)
 
@@ -72,7 +72,7 @@ class App:
             self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
-        self.window.after(self.delay, self.update())
+        self.window.after(self.delay, self.update)
 
     def predict(self):
         frame = self.camera.get_frame()
@@ -87,6 +87,10 @@ class App:
                 self.last_prediction = 2
 
     def counting_toggle(self):
+        if self.counting_enabled:
+            print("Counting has been disabled")
+        else:
+            print("Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
     def save_for_class(self, class_num):
@@ -104,4 +108,5 @@ class App:
         self.counters[class_num - 1] += 1
 
     def reset(self):
+        print("Counter has been reset")
         self.rep_counter = 0
