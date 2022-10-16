@@ -10,7 +10,7 @@ class App:
 
     def __init__(self):
         self.window = tk.Tk()
-        self.window.title = "Rep Counter"
+        self.window.title("Rep Counter")
 
         self.counters = [1, 1]
         self.rep_counter = 0
@@ -35,27 +35,29 @@ class App:
 
     def init_gui(self):
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
-        self.canvas.pack()
+        self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggleauto = tk.Button(self.window, text="Toggle Counting", width=50, command=self.counting_toggle)
-        self.btn_toggleauto.pack(anchor=tk.CENTER, expand=True)
+        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10, height=2, font=("Arial", 14))
+        self.btn_toggle_count.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="Extended", width=50, command=lambda: self.save_for_class(1))
-        self.btn_class_one.pack(anchor=tk.CENTER, expand=True)
+        self.toggle_count_label = tk.Label(self.window, text="OFF", width=10, font=("Arial", 20))
+        self.toggle_count_label.grid(row=1, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="Contracted", width=50, command=lambda: self.save_for_class(2))
-        self.btn_class_two.pack(anchor=tk.CENTER, expand=True)
+        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10, height=2, font=("Arial", 14))
+        self.btn_class_one.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="Train Model", width=50,
-                                   command=lambda: self.model.train_model(self.counters))
-        self.btn_train.pack(anchor=tk.CENTER, expand=True)
+        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=10, height=2, font=("Arial", 14))
+        self.btn_class_two.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_reset = tk.Button(self.window, text="Reset", width=50, command=self.reset)
-        self.btn_reset.pack(anchor=tk.CENTER, expand=True)
+        self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
+                                   command=lambda: self.model.train_model(self.counters), height=2, font=("Arial", 14))
+        self.btn_train.grid(row=3, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
-        self.counter_label = tk.Label(self.window, text=f"{self.rep_counter}")
-        self.counter_label.config(font=("Arial", 24))
-        self.counter_label.pack(anchor=tk.CENTER, expand=True)
+        self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, font=("Arial", 14))
+        self.btn_reset.grid(row=4, column=0, columnspan='2', padx=5, pady=5, stick='we')
+
+        self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
+        self.counter_label.grid(row=5, column=0, padx=5, pady=20, columnspan='2',  stick='we')
 
     def update(self):
         if self.counting_enabled:
@@ -65,7 +67,11 @@ class App:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
 
-        self.counter_label.config(text=f"{self.rep_counter}")
+        self.counter_label.config(text=f"REPS: {self.rep_counter}")
+        if self.counting_enabled:
+            self.toggle_count_label.config(text=f"ON")
+        else:
+            self.toggle_count_label.config(text=f"OFF")
 
         ret, frame = self.camera.get_frame()
         if ret:
