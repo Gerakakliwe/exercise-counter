@@ -13,6 +13,8 @@ class App:
         self.window.title("Rep Counter")
 
         self.counters = [1, 1]
+        self.counter_class_one = 0
+        self.counter_class_two = 0
         self.rep_counter = 0
 
         self.extended = False
@@ -38,16 +40,19 @@ class App:
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10, height=2, font=("Arial", 14))
+        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10,
+                                          height=2, font=("Arial", 14))
         self.btn_toggle_count.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
         self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
         self.toggle_count_label.grid(row=1, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10, height=2, font=("Arial", 14))
+        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10,
+                                       height=2, font=("Arial", 14))
         self.btn_class_one.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=4, height=2, font=("Arial", 14))
+        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=4,
+                                       height=2, font=("Arial", 14))
         self.btn_class_two.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
         self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
@@ -58,7 +63,7 @@ class App:
         self.btn_reset.grid(row=4, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.counter_label.grid(row=5, column=0, padx=5, pady=20, columnspan='2',  stick='we')
+        self.counter_label.grid(row=5, column=0, padx=5, pady=20, columnspan='2', stick='we')
 
     def update(self):
         if self.counting_enabled:
@@ -68,11 +73,16 @@ class App:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
 
-        self.counter_label.config(text=f"REPS: {self.rep_counter}")
+        # Update labels and buttons
         if self.counting_enabled:
             self.toggle_count_label.config(text=f"ON")
         else:
             self.toggle_count_label.config(text=f"OFF")
+
+        self.btn_class_one['text'] = f"EXTENDED ({self.counter_class_one})"
+        self.btn_class_two['text'] = f"CONTRACTED ({self.counter_class_two})"
+
+        self.counter_label.config(text=f"REPS: {self.rep_counter}")
 
         ret, frame = self.camera.get_frame()
         if ret:
@@ -106,6 +116,11 @@ class App:
             os.mkdir("1")
         if not os.path.exists("2"):
             os.mkdir("2")
+
+        if class_num == 1:
+            self.counter_class_one += 1
+        else:
+            self.counter_class_two += 1
 
         cv2.imwrite(f"{class_num}/frame{self.counters[class_num - 1]}.jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY))
         img = PIL.Image.open(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
