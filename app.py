@@ -31,6 +31,7 @@ class App:
         self.update()
 
         self.window.attributes("-topmost", True)
+        self.window.config(bg='#dcdcdc')
         self.window.mainloop()
 
     def init_gui(self):
@@ -40,13 +41,13 @@ class App:
         self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10, height=2, font=("Arial", 14))
         self.btn_toggle_count.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
-        self.toggle_count_label = tk.Label(self.window, text="OFF", width=10, font=("Arial", 20))
+        self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
         self.toggle_count_label.grid(row=1, column=1, padx=5, pady=5, stick='we')
 
         self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10, height=2, font=("Arial", 14))
         self.btn_class_one.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=10, height=2, font=("Arial", 14))
+        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=4, height=2, font=("Arial", 14))
         self.btn_class_two.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
         self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
