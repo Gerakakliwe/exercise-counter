@@ -1,10 +1,12 @@
 import shutil
+import time
 import tkinter as tk
 import os
 import PIL.Image, PIL.ImageTk
 import cv2
 import camera
 import model
+import speech_recognition as sr
 
 
 class App:
@@ -12,6 +14,8 @@ class App:
     def __init__(self):
         self.window = tk.Tk()
         self.window.title("Rep Counter")
+
+        self.recognizer = sr.Recognizer()
 
         self.counters = [1, 1]
         self.counter_class_one = 0
@@ -42,30 +46,62 @@ class App:
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10,
+        self.btn_toggle_speech_rc = tk.Button(self.window, text="TOGGLE SPEECH RECOGNITION",
+                                              command=self.recognize_speech,
+                                              height=2, font=("Arial", 14))
+        self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
+
+        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.toggle_counting, width=10,
                                           height=2, font=("Arial", 14), state="disabled")
-        self.btn_toggle_count.grid(row=1, column=0, padx=5, pady=5, stick='we')
+        self.btn_toggle_count.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
         self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
-        self.toggle_count_label.grid(row=1, column=1, padx=5, pady=5, stick='we')
+        self.toggle_count_label.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
         self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10,
                                        height=2, font=("Arial", 14))
-        self.btn_class_one.grid(row=2, column=0, padx=5, pady=5, stick='we')
+        self.btn_class_one.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
         self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=4,
                                        height=2, font=("Arial", 14))
-        self.btn_class_two.grid(row=2, column=1, padx=5, pady=5, stick='we')
+        self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
         self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
                                    command=lambda: self.toggle_train_model(), height=2, font=("Arial", 14))
-        self.btn_train.grid(row=3, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_train.grid(row=4, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, font=("Arial", 14))
-        self.btn_reset.grid(row=4, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_reset.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.counter_label.grid(row=5, column=0, padx=5, pady=20, columnspan='2', stick='we')
+        self.counter_label.grid(row=6, column=0, padx=5, pady=20, columnspan='2', stick='we')
+
+    def recognize_speech(self):
+        with sr.Microphone() as source:
+            try:
+                audio = self.recognizer.listen(source)
+                recognized_text = self.recognizer.recognize_google(audio).lower()
+                print(recognized_text)
+                if recognized_text == "first class":
+                    for i in range(50):
+                        time.sleep(0.05)
+                        self.save_for_class(1)
+                elif recognized_text == "second class":
+                    for i in range(50):
+                        time.sleep(0.05)
+                        self.save_for_class(2)
+                elif recognized_text == "train model":
+                    self.toggle_train_model()
+                elif recognized_text == "toggle counting":
+                    self.toggle_counting()
+                elif recognized_text == "reset":
+                    self.reset()
+                else:
+                    print("Try once more, you can say phrases like:\n"
+                          "first class, second class, train model, toggle counting, reset")
+                    self.recognize_speech()
+            except sr.UnknownValueError:
+                print("Couldn't recognize, press the button again")
 
     def toggle_train_model(self):
         self.model.train_model(self.counters)
@@ -109,7 +145,7 @@ class App:
                 self.contracted = True
                 self.last_prediction = 2
 
-    def counting_toggle(self):
+    def toggle_counting(self):
         if self.counting_enabled:
             print("Counting has been disabled")
         else:
@@ -133,10 +169,12 @@ class App:
         img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
         img.save(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
 
+        print(f"Image for the class {class_num} has been saved")
+
         self.counters[class_num - 1] += 1
 
     def reset(self):
-        print("Model and counters has been reseted")
+        print("Model and counters has been reset")
         if os.path.exists("1"):
             shutil.rmtree("1")
         if os.path.exists("2"):
