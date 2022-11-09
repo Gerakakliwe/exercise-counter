@@ -1,3 +1,4 @@
+import shutil
 import tkinter as tk
 import os
 import PIL.Image, PIL.ImageTk
@@ -22,6 +23,7 @@ class App:
         self.last_prediction = 0
 
         self.model = model.Model()
+        self.model_trained = False
 
         self.counting_enabled = False
 
@@ -41,7 +43,7 @@ class App:
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
         self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.counting_toggle, width=10,
-                                          height=2, font=("Arial", 14))
+                                          height=2, font=("Arial", 14), state="disabled")
         self.btn_toggle_count.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
         self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
@@ -56,7 +58,7 @@ class App:
         self.btn_class_two.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
         self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
-                                   command=lambda: self.model.train_model(self.counters), height=2, font=("Arial", 14))
+                                   command=lambda: self.toggle_train_model(), height=2, font=("Arial", 14))
         self.btn_train.grid(row=3, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, font=("Arial", 14))
@@ -64,6 +66,10 @@ class App:
 
         self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.counter_label.grid(row=5, column=0, padx=5, pady=20, columnspan='2', stick='we')
+
+    def toggle_train_model(self):
+        self.model.train_model(self.counters)
+        self.btn_toggle_count['state'] = 'active'
 
     def update(self):
         if self.counting_enabled:
@@ -130,5 +136,18 @@ class App:
         self.counters[class_num - 1] += 1
 
     def reset(self):
-        print("Counter has been reset")
+        print("Model and counters has been reseted")
+        if os.path.exists("1"):
+            shutil.rmtree("1")
+        if os.path.exists("2"):
+            shutil.rmtree("2")
+        self.btn_toggle_count['state'] = 'disabled'
+        self.counters = [1, 1]
+        self.counter_class_one = 0
+        self.counter_class_two = 0
         self.rep_counter = 0
+        self.extended = False
+        self.contracted = False
+        self.last_prediction = 0
+        self.model_trained = False
+        self.counting_enabled = False
