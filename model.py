@@ -27,7 +27,6 @@ class Model:
 
         img_list = img_list.reshape(counters[0] - 1 + counters[1] - 1, 16950)
         self.model.fit(img_list, class_list)
-        print("Model successfully trained")
 
     def predict(self, frame):
         frame = frame[1]

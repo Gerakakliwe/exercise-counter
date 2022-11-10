@@ -34,6 +34,10 @@ class App:
         self.camera = camera.Camera()
 
         self.init_gui()
+        self.events = []
+        self.place_for_text.config(state="normal")
+        self.place_for_text.insert(tk.END, ' ')
+        self.place_for_text.config(state="disabled")
 
         self.delay = 15
         self.update()
@@ -74,38 +78,45 @@ class App:
         self.btn_reset.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.counter_label.grid(row=6, column=0, padx=5, pady=20, columnspan='2', stick='we')
+        self.counter_label.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
+
+        self.place_for_text = tk.Text(self.window, width=55, height=53, state='disabled')
+        self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
 
     def recognize_speech(self):
         with sr.Microphone() as source:
             try:
                 audio = self.recognizer.listen(source)
                 recognized_text = self.recognizer.recognize_google(audio).lower()
-                print(recognized_text)
+                self.log_message(f"You have said: {recognized_text}")
                 if recognized_text == "first class":
-                    for i in range(50):
+                    for i in range(20):
                         time.sleep(0.05)
                         self.save_for_class(1)
                 elif recognized_text == "second class":
-                    for i in range(50):
+                    for i in range(20):
                         time.sleep(0.05)
                         self.save_for_class(2)
                 elif recognized_text == "train model":
                     self.toggle_train_model()
-                elif recognized_text == "toggle counting":
-                    self.toggle_counting()
+                elif recognized_text == "count":
+                    if self.btn_toggle_count['state'] == 'active':
+                        self.toggle_counting()
+                    else:
+                        self.log_message("Can't start counting until model is trained")
                 elif recognized_text == "reset":
                     self.reset()
                 else:
-                    print("Try once more, you can say phrases like:\n"
-                          "first class, second class, train model, toggle counting, reset")
+                    self.log_message("Try once more, you can use phrases like:\n"
+                                     "first class, second class, train model, count, reset")
                     self.recognize_speech()
             except sr.UnknownValueError:
-                print("Couldn't recognize, press the button again")
+                self.log_message("Couldn't recognize, press the button again")
 
     def toggle_train_model(self):
         self.model.train_model(self.counters)
         self.btn_toggle_count['state'] = 'active'
+        self.log_message("Model successfully trained")
 
     def update(self):
         if self.counting_enabled:
@@ -114,6 +125,7 @@ class App:
         if self.extended and self.contracted:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
+            self.log_message("+1")
 
         # Update labels and buttons
         if self.counting_enabled:
@@ -147,9 +159,9 @@ class App:
 
     def toggle_counting(self):
         if self.counting_enabled:
-            print("Counting has been disabled")
+            self.log_message("Counting has been disabled")
         else:
-            print("Counting has been enabled")
+            self.log_message("Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
     def save_for_class(self, class_num):
@@ -169,12 +181,12 @@ class App:
         img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
         img.save(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
 
-        print(f"Image for the class {class_num} has been saved")
+        self.log_message(f"Image for the class {class_num} has been saved")
 
         self.counters[class_num - 1] += 1
 
     def reset(self):
-        print("Model and counters has been reset")
+        self.log_message("Model and counters has been reset")
         if os.path.exists("1"):
             shutil.rmtree("1")
         if os.path.exists("2"):
@@ -189,3 +201,13 @@ class App:
         self.last_prediction = 0
         self.model_trained = False
         self.counting_enabled = False
+
+    def log_message(self, message):
+        print(message)
+        if len(self.events) == 50:
+            self.events.pop(0)
+        self.events.append(message+'\n')
+        self.place_for_text.config(state="normal")
+        self.place_for_text.delete('1.0', tk.END)
+        self.place_for_text.insert(tk.END, self.events)
+        self.place_for_text.config(state="disabled")
