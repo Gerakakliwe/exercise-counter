@@ -12,36 +12,40 @@ import speech_recognition as sr
 class App:
 
     def __init__(self):
+        # Initialize tkinter instance and window
         self.window = tk.Tk()
         self.window.title("Rep Counter")
 
+        # Initialize camera instance
+        self.camera = camera.Camera()
+
+        # Initialize model and fitness status
+        self.model = model.Model()
+        self.model_trained = False
+
+        # Initialize speech recognizer instance
         self.recognizer = sr.Recognizer()
 
-        self.counters = [1, 1]
-        self.counter_class_one = 0
-        self.counter_class_two = 0
+        # Counters and toggle counting
+        self.counters = [0, 0]
         self.rep_counter = 0
+        self.counting_enabled = False
 
+        # States of exercise and last prediction
         self.extended = False
         self.contracted = False
         self.last_prediction = 0
 
-        self.model = model.Model()
-        self.model_trained = False
-
-        self.counting_enabled = False
-
-        self.camera = camera.Camera()
-
+        # Initialize GUI
         self.init_gui()
-        self.events = []
-        self.place_for_text.config(state="normal")
-        self.place_for_text.insert(tk.END, ' ')
-        self.place_for_text.config(state="disabled")
 
+        # Delay attribute for updating
         self.delay = 15
+
+        # Update function
         self.update()
 
+        # Attributes for tkinter window
         self.window.attributes("-topmost", True)
         self.window.config(bg='#dcdcdc')
         self.window.mainloop()
@@ -80,7 +84,7 @@ class App:
         self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.counter_label.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
 
-        self.place_for_text = tk.Text(self.window, width=55, height=53, state='disabled')
+        self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
         self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
 
     def recognize_speech(self):
@@ -88,7 +92,7 @@ class App:
             try:
                 audio = self.recognizer.listen(source)
                 recognized_text = self.recognizer.recognize_google(audio).lower()
-                self.log_message(f"You have said: {recognized_text}")
+                self.log_message(f"You said: {recognized_text}")
                 if recognized_text == "first class":
                     for i in range(20):
                         time.sleep(0.05)
@@ -103,29 +107,34 @@ class App:
                     if self.btn_toggle_count['state'] == 'active':
                         self.toggle_counting()
                     else:
-                        self.log_message("Can't start counting until model is trained")
+                        self.log_message(message="Can't start counting until model is trained", msg_type='warning')
                 elif recognized_text == "reset":
                     self.reset()
                 else:
-                    self.log_message("Try once more, you can use phrases like:\n"
-                                     "first class, second class, train model, count, reset")
+                    self.log_message(message="Try once more, you can use phrases like:\n"
+                                             "first class, second class, train model, count, reset", msg_type='warning')
                     self.recognize_speech()
             except sr.UnknownValueError:
-                self.log_message("Couldn't recognize, press the button again")
+                self.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
 
     def toggle_train_model(self):
-        self.model.train_model(self.counters)
-        self.btn_toggle_count['state'] = 'active'
-        self.log_message("Model successfully trained")
+        try:
+            self.model.train_model(self.counters)
+            self.btn_toggle_count['state'] = 'active'
+            self.log_message(message="Model successfully trained", msg_type='success')
+        except Exception:
+            self.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 
     def update(self):
+        # Toggle counting
         if self.counting_enabled:
             self.predict()
 
+        # Rep is done, increment counter, write log message
         if self.extended and self.contracted:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
-            self.log_message("+1")
+            self.log_message("+1 rep")
 
         # Update labels and buttons
         if self.counting_enabled:
@@ -133,11 +142,14 @@ class App:
         else:
             self.toggle_count_label.config(text=f"OFF")
 
-        self.btn_class_one['text'] = f"EXTENDED ({self.counter_class_one})"
-        self.btn_class_two['text'] = f"CONTRACTED ({self.counter_class_two})"
+        # Update number of photos taken for each class
+        self.btn_class_one['text'] = f"EXTENDED ({self.counters[0]})"
+        self.btn_class_two['text'] = f"CONTRACTED ({self.counters[1]})"
 
+        # Update number of reps
         self.counter_label.config(text=f"REPS: {self.rep_counter}")
 
+        # Update image
         ret, frame = self.camera.get_frame()
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
@@ -159,42 +171,42 @@ class App:
 
     def toggle_counting(self):
         if self.counting_enabled:
-            self.log_message("Counting has been disabled")
+            self.log_message(message="Counting has been disabled")
         else:
-            self.log_message("Counting has been enabled")
+            self.log_message(message="Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
     def save_for_class(self, class_num):
+        # Get image from camera
         ret, frame = self.camera.get_frame()
+
+        # Create folders for photos
         if not os.path.exists("1"):
             os.mkdir("1")
         if not os.path.exists("2"):
             os.mkdir("2")
 
-        if class_num == 1:
-            self.counter_class_one += 1
-        else:
-            self.counter_class_two += 1
-
+        # Work with image, save, recolor to gray
         cv2.imwrite(f"{class_num}/frame{self.counters[class_num - 1]}.jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY))
+        # Open image
         img = PIL.Image.open(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
+        # Resize image, image antialiasing
         img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
+        # Save updated image
         img.save(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
-
-        self.log_message(f"Image for the class {class_num} has been saved")
-
+        # Increment counters
         self.counters[class_num - 1] += 1
+        # Log message
+        self.log_message(message=f"Image for the class {class_num} has been saved")
 
     def reset(self):
-        self.log_message("Model and counters has been reset")
+        self.log_message("Data has been reset", msg_type='warning')
         if os.path.exists("1"):
             shutil.rmtree("1")
         if os.path.exists("2"):
             shutil.rmtree("2")
         self.btn_toggle_count['state'] = 'disabled'
-        self.counters = [1, 1]
-        self.counter_class_one = 0
-        self.counter_class_two = 0
+        self.counters = [0, 0]
         self.rep_counter = 0
         self.extended = False
         self.contracted = False
@@ -202,12 +214,25 @@ class App:
         self.model_trained = False
         self.counting_enabled = False
 
-    def log_message(self, message):
+    def log_message(self, message, msg_type='default_message'):
+        # Print message into a terminal
         print(message)
-        if len(self.events) == 50:
-            self.events.pop(0)
-        self.events.append(message+'\n')
+
+        # Create and configure tags for warning and success messages
+        self.place_for_text.tag_config('warning', foreground='red')
+        self.place_for_text.tag_config('success', foreground='green')
+
+        # Activate text widget so we can insert logs
         self.place_for_text.config(state="normal")
-        self.place_for_text.delete('1.0', tk.END)
-        self.place_for_text.insert(tk.END, self.events)
+
+        # Warning - red color, success - green color, default - black color
+        if msg_type == 'warning':
+            self.place_for_text.insert(tk.END, message + '\n', 'warning')
+        elif msg_type == 'success':
+            self.place_for_text.insert(tk.END, message + '\n', 'success')
+        else:
+            self.place_for_text.insert(tk.END, message + '\n')
+
+        # Update text widget, deactivate text widget so we can't write there, autoscroll to an end
         self.place_for_text.config(state="disabled")
+        self.place_for_text.see('end')
