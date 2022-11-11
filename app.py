@@ -60,8 +60,8 @@ class App:
                                               height=2, font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
-        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=self.toggle_counting, width=10,
-                                          height=2, font=("Arial", 14), state="disabled")
+        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=lambda: self.toggle_counting(),
+                                          width=10, height=2, font=("Arial", 14), state="disabled")
         self.btn_toggle_count.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
         self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
@@ -109,7 +109,7 @@ class App:
                 elif recognized_text == "train model":
                     self.toggle_train_model()
                 elif recognized_text == "count":
-                    if self.btn_toggle_count['state'] == 'active':
+                    if self.model_trained:
                         self.toggle_counting()
                     else:
                         self.log_message(message="Can't start counting until model is trained", msg_type='warning')
@@ -125,6 +125,7 @@ class App:
     def toggle_train_model(self):
         try:
             self.model.train_model(self.counters)
+            self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
             self.log_message(message="Model successfully trained", msg_type='success')
         except Exception:
