@@ -5,6 +5,7 @@ import os
 import PIL.Image, PIL.ImageTk
 import cv2
 import camera
+import logger
 import model
 import speech_recognition as sr
 import threading
@@ -39,6 +40,9 @@ class App:
 
         # Initialize GUI
         self.init_gui()
+
+        # Initialize logger instance with GUI's text widget as parameter
+        self.logger = logger.Logger(app_place_for_text=self.place_for_text)
 
         # Delay attribute for updating
         self.delay = 15
@@ -97,7 +101,7 @@ class App:
             try:
                 audio = self.recognizer.listen(source)
                 recognized_text = self.recognizer.recognize_google(audio).lower()
-                self.log_message(f"You said: {recognized_text}")
+                self.logger.log_message(f"You said: {recognized_text}")
                 if recognized_text == "first class":
                     for i in range(20):
                         time.sleep(0.05)
@@ -112,24 +116,24 @@ class App:
                     if self.model_trained:
                         self.toggle_counting()
                     else:
-                        self.log_message(message="Can't start counting until model is trained", msg_type='warning')
+                        self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
                 elif recognized_text == "reset":
                     self.reset()
                 else:
-                    self.log_message(message="Try once more, you can use phrases like:\n"
+                    self.logger.log_message(message="Try once more, you can use phrases like:\n"
                                              "first class, second class, train model, count, reset", msg_type='warning')
                     self.recognize_speech()
             except sr.UnknownValueError:
-                self.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
+                self.logger.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
 
     def toggle_train_model(self):
         try:
             self.model.train_model(self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
-            self.log_message(message="Model successfully trained", msg_type='success')
+            self.logger.log_message(message="Model successfully trained", msg_type='success')
         except Exception:
-            self.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
+            self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 
     def update(self):
         # Toggle counting
@@ -140,7 +144,7 @@ class App:
         if self.extended and self.contracted:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
-            self.log_message(message="+1 rep", msg_type='success')
+            self.logger.log_message(message="+1 rep", msg_type='success')
 
         # Update labels and buttons
         if self.counting_enabled:
@@ -177,9 +181,9 @@ class App:
 
     def toggle_counting(self):
         if self.counting_enabled:
-            self.log_message(message="Counting has been disabled")
+            self.logger.log_message(message="Counting has been disabled")
         else:
-            self.log_message(message="Counting has been enabled")
+            self.logger.log_message(message="Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
     def save_for_class(self, class_num):
@@ -203,10 +207,10 @@ class App:
         # Increment counters
         self.counters[class_num - 1] += 1
         # Log message
-        self.log_message(message=f"Image for the class {class_num} has been saved")
+        self.logger.log_message(message=f"Image for the class {class_num} has been saved")
 
     def reset(self):
-        self.log_message("Data has been reset", msg_type='warning')
+        self.logger.log_message("Data has been reset", msg_type='warning')
         if os.path.exists("1"):
             shutil.rmtree("1")
         if os.path.exists("2"):
@@ -219,26 +223,3 @@ class App:
         self.last_prediction = 0
         self.model_trained = False
         self.counting_enabled = False
-
-    def log_message(self, message, msg_type='default_message'):
-        # Print message into a terminal
-        print(message)
-
-        # Create and configure tags for warning and success messages
-        self.place_for_text.tag_config('warning', foreground='red')
-        self.place_for_text.tag_config('success', foreground='green')
-
-        # Activate text widget so we can insert logs
-        self.place_for_text.config(state="normal")
-
-        # Warning - red color, success - green color, default - black color
-        if msg_type == 'warning':
-            self.place_for_text.insert(tk.END, message + '\n', 'warning')
-        elif msg_type == 'success':
-            self.place_for_text.insert(tk.END, message + '\n', 'success')
-        else:
-            self.place_for_text.insert(tk.END, message + '\n')
-
-        # Update text widget, deactivate text widget so we can't write there, autoscroll to an end
-        self.place_for_text.config(state="disabled")
-        self.place_for_text.see('end')
