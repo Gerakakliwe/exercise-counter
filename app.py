@@ -7,6 +7,7 @@ import cv2
 import camera
 import model
 import speech_recognition as sr
+import threading
 
 
 class App:
@@ -55,7 +56,7 @@ class App:
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
         self.btn_toggle_speech_rc = tk.Button(self.window, text="TOGGLE SPEECH RECOGNITION",
-                                              command=self.recognize_speech,
+                                              command=self.threading_recognize_speech,
                                               height=2, font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
@@ -86,6 +87,10 @@ class App:
 
         self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
         self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
+
+    def threading_recognize_speech(self):
+        a_thread = threading.Thread(target=self.recognize_speech)
+        a_thread.start()
 
     def recognize_speech(self):
         with sr.Microphone() as source:
@@ -134,7 +139,7 @@ class App:
         if self.extended and self.contracted:
             self.extended, self.contracted = False, False
             self.rep_counter += 1
-            self.log_message("+1 rep")
+            self.log_message(message="+1 rep", msg_type='success')
 
         # Update labels and buttons
         if self.counting_enabled:
