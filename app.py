@@ -90,11 +90,14 @@ class App:
         self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
 
         self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
-        self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
+        self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='5', stick='we')
+
+        self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
+        self.btn_clean.grid(row=5, column=2, padx=5, pady=5, stick='we')
 
     def threading_toggle_speech_recognition(self):
-        a_thread = threading.Thread(target=self.toggle_speech_recognition)
-        a_thread.start()
+        speech_recognition_thread = threading.Thread(target=self.toggle_speech_recognition)
+        speech_recognition_thread.start()
 
     def toggle_speech_recognition(self):
         self.recognition_enabled = True
@@ -124,8 +127,8 @@ class App:
         self.recognition_enabled = False
 
     def threading_toggle_train_model(self):
-        b_thread = threading.Thread(target=self.toggle_train_model)
-        b_thread.start()
+        train_model_thread = threading.Thread(target=self.toggle_train_model)
+        train_model_thread.start()
 
     def toggle_train_model(self):
         try:
@@ -221,7 +224,6 @@ class App:
         self.logger.log_message(message=f"Image for the class {class_num} has been saved")
 
     def reset(self):
-        self.logger.log_message("Data has been reset", msg_type='warning')
         if os.path.exists("1"):
             shutil.rmtree("1")
         if os.path.exists("2"):
@@ -235,3 +237,10 @@ class App:
         self.model_trained = False
         self.counting_enabled = False
         self.recognition_enabled = False
+        self.logger.log_message("Data has been reset", msg_type='warning')
+
+    def clean(self):
+        self.place_for_text.config(state='normal')
+        self.place_for_text.delete('1.0', tk.END)
+        self.logger.log_message(message="Text widget has been cleaned", msg_type='default')
+        self.place_for_text.config(state='disabled')
