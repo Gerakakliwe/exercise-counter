@@ -141,9 +141,8 @@ class App:
             except Exception:
                 self.logger.log_message(message="Couldn't recognize text, push the button once more",
                                         msg_type='warning')
-            finally:
-                self.recognition_enabled = False
-                self.logger.log_message(f"Speech recognition has been disabled")
+        self.recognition_enabled = False
+        self.logger.log_message(f"Speech recognition has been disabled")
 
     def threading_toggle_train_model(self):
         train_model_thread = threading.Thread(target=self.toggle_train_model)
