@@ -27,6 +27,7 @@ class App:
 
         # Initialize speech recognizer instance
         self.recognizer = sr.Recognizer()
+        self.recognition_enabled = False
 
         # Counters and toggle counting
         self.counters = [0, 0]
@@ -59,35 +60,35 @@ class App:
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggle_speech_rc = tk.Button(self.window, text="TOGGLE SPEECH RECOGNITION",
-                                              command=self.threading_recognize_speech,
-                                              height=2, font=("Arial", 14))
-        self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_toggle_speech_rc = tk.Button(self.window, text="SPEECH RECOGNITION", command=self.threading_recognize_speech, height=2, font=("Arial", 14))
+        self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_toggle_count = tk.Button(self.window, text="TOGGLE COUNTING", command=lambda: self.toggle_counting(),
-                                          width=10, height=2, font=("Arial", 14), state="disabled")
+        self.label_toggle_speech_rc = tk.Label(self.window, text="OFF", font=("Arial", 36))
+        self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, pady=5, stick='we')
+
+        self.btn_toggle_count = tk.Button(self.window, text="COUNTING", command=lambda: self.toggle_counting(), height=2, font=("Arial", 14), state="disabled")
         self.btn_toggle_count.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
-        self.toggle_count_label = tk.Label(self.window, text="OFF", width=4, font=("Arial", 36))
-        self.toggle_count_label.grid(row=2, column=1, padx=5, pady=5, stick='we')
+        self.label_toggle_count = tk.Label(self.window, text="OFF", font=("Arial", 36))
+        self.label_toggle_count.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), width=10,
-                                       height=2, font=("Arial", 14))
+        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), height=2, font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), width=4,
-                                       height=2, font=("Arial", 14))
+        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), height=2, font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="TRAIN MODEL",
-                                   command=lambda: self.toggle_train_model(), height=2, font=("Arial", 14))
-        self.btn_train.grid(row=4, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=lambda: self.toggle_train_model(), height=2, font=("Arial", 14))
+        self.btn_train.grid(row=4, column=0, padx=5, pady=5, stick='we')
+
+        self.label_toggle_train = tk.Label(self.window, text="NOT TRAINED", height=2, font=("Arial", 18))
+        self.label_toggle_train.grid(row=4, column=1, padx=5, pady=5, stick='we')
 
         self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, font=("Arial", 14))
         self.btn_reset.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
-        self.counter_label = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.counter_label.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
+        self.label_rep_counter = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
+        self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
 
         self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
         self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
@@ -97,18 +98,19 @@ class App:
         a_thread.start()
 
     def recognize_speech(self):
+        self.recognition_enabled = True
         with sr.Microphone() as source:
             try:
                 audio = self.recognizer.listen(source)
                 recognized_text = self.recognizer.recognize_google(audio).lower()
                 self.logger.log_message(f"You said: {recognized_text}")
                 if recognized_text == "first class":
-                    for i in range(20):
-                        time.sleep(0.05)
+                    for i in range(50):
+                        time.sleep(0.02)
                         self.save_for_class(1)
                 elif recognized_text == "second class":
-                    for i in range(20):
-                        time.sleep(0.05)
+                    for i in range(50):
+                        time.sleep(0.02)
                         self.save_for_class(2)
                 elif recognized_text == "train model":
                     self.toggle_train_model()
@@ -125,6 +127,8 @@ class App:
                     self.recognize_speech()
             except sr.UnknownValueError:
                 self.logger.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
+
+        self.recognition_enabled = False
 
     def toggle_train_model(self):
         try:
@@ -148,16 +152,26 @@ class App:
 
         # Update labels and buttons
         if self.counting_enabled:
-            self.toggle_count_label.config(text=f"ON")
+            self.label_toggle_count.config(text="ON")
         else:
-            self.toggle_count_label.config(text=f"OFF")
+            self.label_toggle_count.config(text="OFF")
+
+        if self.recognition_enabled:
+            self.label_toggle_speech_rc.config(text="ON")
+        else:
+            self.label_toggle_speech_rc.config(text="OFF")
+
+        if self.model_trained:
+            self.label_toggle_train.config(text="TRAINED")
+        else:
+            self.label_toggle_train.config(text="NOT TRAINED")
 
         # Update number of photos taken for each class
         self.btn_class_one['text'] = f"EXTENDED ({self.counters[0]})"
         self.btn_class_two['text'] = f"CONTRACTED ({self.counters[1]})"
 
         # Update number of reps
-        self.counter_label.config(text=f"REPS: {self.rep_counter}")
+        self.label_rep_counter.config(text=f"REPS: {self.rep_counter}")
 
         # Update image
         ret, frame = self.camera.get_frame()
@@ -223,3 +237,4 @@ class App:
         self.last_prediction = 0
         self.model_trained = False
         self.counting_enabled = False
+        self.recognition_enabled = False
