@@ -89,7 +89,7 @@ class App:
         self.label_rep_counter = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
 
-        self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
+        self.place_for_text = tk.Text(self.window, width=45, height=38, font=("Helvetica", 14), state='disabled')
         self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='5', stick='we')
 
         self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
@@ -101,30 +101,37 @@ class App:
 
     def toggle_speech_recognition(self):
         self.recognition_enabled = True
+        self.logger.log_message(f"Speech recognition has been enabled")
+        if self.recognition_enabled:
+            try:
+                recognized_text = self.recognizer.recognize_speech()
+                self.logger.log_message(f"You said: {recognized_text}")
 
-        recognized_text, message, msg_type = self.recognizer.recognize_speech()
-        self.logger.log_message(f"You said: {recognized_text}")
-
-        if recognized_text == "first class":
-            for i in range(50):
-                self.save_for_class(1)
-        elif recognized_text == "second class":
-            for i in range(50):
-                self.save_for_class(2)
-        elif recognized_text == "train model":
-            self.toggle_train_model()
-        elif recognized_text == "count":
-            if self.model_trained:
-                self.toggle_counting()
-            else:
-                self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
-        elif recognized_text == "reset":
-            self.reset()
-        else:
-            self.logger.log_message(message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset", msg_type='warning')
-            self.toggle_speech_recognition()
-
-        self.recognition_enabled = False
+                if recognized_text == "first class":
+                    for i in range(50):
+                        self.save_for_class(1)
+                elif recognized_text == "second class":
+                    for i in range(50):
+                        self.save_for_class(2)
+                elif recognized_text == "train model":
+                    self.toggle_train_model()
+                elif recognized_text == "count":
+                    if self.model_trained:
+                        self.toggle_counting()
+                    else:
+                        self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
+                elif recognized_text == "reset":
+                    self.reset()
+                elif recognized_text == "clean":
+                    self.clean()
+                else:
+                    self.logger.log_message(message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean", msg_type='warning')
+                    self.toggle_speech_recognition()
+            except Exception:
+                self.logger.log_message( message="Couldn't recognize text, push the button once more", msg_type='warning')
+            finally:
+                self.recognition_enabled = False
+                self.logger.log_message(f"Speech recognition has been disabled")
 
     def threading_toggle_train_model(self):
         train_model_thread = threading.Thread(target=self.toggle_train_model)
@@ -132,6 +139,7 @@ class App:
 
     def toggle_train_model(self):
         try:
+            self.logger.log_message(message="Training...", msg_type='success')
             self.model.train_model(self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
