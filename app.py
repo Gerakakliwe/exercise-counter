@@ -9,6 +9,8 @@ import model
 import speech_recognizer
 import threading
 
+IMAGES_TO_TAKE = 50
+
 
 class App:
 
@@ -59,25 +61,31 @@ class App:
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggle_speech_rc = tk.Button(self.window, text="SPEECH RECOGNITION", command=self.threading_toggle_speech_recognition, height=2, font=("Arial", 14))
+        self.btn_toggle_speech_rc = tk.Button(self.window, text="SPEECH RECOGNITION",
+                                              command=self.threading_toggle_speech_recognition, height=2,
+                                              font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
         self.label_toggle_speech_rc = tk.Label(self.window, text="OFF", font=("Arial", 36))
         self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_toggle_count = tk.Button(self.window, text="COUNTING", command=lambda: self.toggle_counting(), height=2, font=("Arial", 14), state="disabled")
+        self.btn_toggle_count = tk.Button(self.window, text="COUNTING", command=lambda: self.toggle_counting(),
+                                          height=2, font=("Arial", 14), state="disabled")
         self.btn_toggle_count.grid(row=2, column=0, padx=5, pady=5, stick='we')
 
         self.label_toggle_count = tk.Label(self.window, text="OFF", font=("Arial", 36))
         self.label_toggle_count.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), height=2, font=("Arial", 14))
+        self.btn_class_one = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(1), height=2,
+                                       font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), height=2, font=("Arial", 14))
+        self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), height=2,
+                                       font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.threading_toggle_train_model, height=2, font=("Arial", 14))
+        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.threading_toggle_train_model, height=2,
+                                   font=("Arial", 14))
         self.btn_train.grid(row=4, column=0, padx=5, pady=5, stick='we')
 
         self.label_toggle_train = tk.Label(self.window, text="NOT TRAINED", height=2, font=("Arial", 18))
@@ -108,27 +116,31 @@ class App:
                 self.logger.log_message(f"You said: {recognized_text}")
 
                 if recognized_text == "first class":
-                    for i in range(50):
-                        self.save_for_class(1)
+                    for i in range(IMAGES_TO_TAKE):
+                        self.save_for_class(1, i + 1, IMAGES_TO_TAKE)
                 elif recognized_text == "second class":
-                    for i in range(50):
-                        self.save_for_class(2)
+                    for i in range(IMAGES_TO_TAKE):
+                        self.save_for_class(2, i + 1, IMAGES_TO_TAKE)
                 elif recognized_text == "train model":
                     self.toggle_train_model()
                 elif recognized_text == "count":
                     if self.model_trained:
                         self.toggle_counting()
                     else:
-                        self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
+                        self.logger.log_message(message="Can't start counting until model is trained",
+                                                msg_type='warning')
                 elif recognized_text == "reset":
                     self.reset()
                 elif recognized_text == "clean":
                     self.clean()
                 else:
-                    self.logger.log_message(message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean", msg_type='warning')
+                    self.logger.log_message(
+                        message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
+                        msg_type='warning')
                     self.toggle_speech_recognition()
             except Exception:
-                self.logger.log_message( message="Couldn't recognize text, push the button once more", msg_type='warning')
+                self.logger.log_message(message="Couldn't recognize text, push the button once more",
+                                        msg_type='warning')
             finally:
                 self.recognition_enabled = False
                 self.logger.log_message(f"Speech recognition has been disabled")
@@ -208,7 +220,7 @@ class App:
             self.logger.log_message(message="Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
-    def save_for_class(self, class_num):
+    def save_for_class(self, class_num, loop_counter=1, amount=1):
         # Get image from camera
         ret, frame = self.camera.get_frame()
 
@@ -229,7 +241,10 @@ class App:
         # Increment counters
         self.counters[class_num - 1] += 1
         # Log message
-        self.logger.log_message(message=f"Image for the class {class_num} has been saved")
+        if amount == 1:
+            self.logger.log_message(message=f"Image for the class {class_num} has been saved")
+        else:
+            self.logger.log_message(message=f"Image for the class {class_num} has been saved ({loop_counter}/{amount})")
 
     def reset(self):
         if os.path.exists("1"):
