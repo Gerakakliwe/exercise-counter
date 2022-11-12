@@ -60,7 +60,7 @@ class App:
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
         self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
 
-        self.btn_toggle_speech_rc = tk.Button(self.window, text="SPEECH RECOGNITION", command=self.threading_recognize_speech, height=2, font=("Arial", 14))
+        self.btn_toggle_speech_rc = tk.Button(self.window, text="SPEECH RECOGNITION", command=self.threading_toggle_speech_recognition, height=2, font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
         self.label_toggle_speech_rc = tk.Label(self.window, text="OFF", font=("Arial", 36))
@@ -78,7 +78,7 @@ class App:
         self.btn_class_two = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(2), height=2, font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=lambda: self.toggle_train_model(), height=2, font=("Arial", 14))
+        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.threading_toggle_train_model, height=2, font=("Arial", 14))
         self.btn_train.grid(row=4, column=0, padx=5, pady=5, stick='we')
 
         self.label_toggle_train = tk.Label(self.window, text="NOT TRAINED", height=2, font=("Arial", 18))
@@ -93,11 +93,11 @@ class App:
         self.place_for_text = tk.Text(self.window, width=40, height=38, font=("Helvetica", 14), state='disabled')
         self.place_for_text.grid(row=0, column=2, padx=5, pady=5, rowspan='6', stick='we')
 
-    def threading_recognize_speech(self):
-        a_thread = threading.Thread(target=self.recognize_speech)
+    def threading_toggle_speech_recognition(self):
+        a_thread = threading.Thread(target=self.toggle_speech_recognition)
         a_thread.start()
 
-    def recognize_speech(self):
+    def toggle_speech_recognition(self):
         self.recognition_enabled = True
         with sr.Microphone() as source:
             try:
@@ -106,11 +106,9 @@ class App:
                 self.logger.log_message(f"You said: {recognized_text}")
                 if recognized_text == "first class":
                     for i in range(50):
-                        time.sleep(0.02)
                         self.save_for_class(1)
                 elif recognized_text == "second class":
                     for i in range(50):
-                        time.sleep(0.02)
                         self.save_for_class(2)
                 elif recognized_text == "train model":
                     self.toggle_train_model()
@@ -124,11 +122,15 @@ class App:
                 else:
                     self.logger.log_message(message="Try once more, you can use phrases like:\n"
                                              "first class, second class, train model, count, reset", msg_type='warning')
-                    self.recognize_speech()
+                    self.toggle_speech_recognition()
             except sr.UnknownValueError:
                 self.logger.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
 
         self.recognition_enabled = False
+
+    def threading_toggle_train_model(self):
+        b_thread = threading.Thread(target=self.toggle_train_model)
+        b_thread.start()
 
     def toggle_train_model(self):
         try:
@@ -150,7 +152,7 @@ class App:
             self.rep_counter += 1
             self.logger.log_message(message="+1 rep", msg_type='success')
 
-        # Update labels and buttons
+        # Update labels
         if self.counting_enabled:
             self.label_toggle_count.config(text="ON")
         else:
