@@ -1,5 +1,4 @@
 import shutil
-import time
 import tkinter as tk
 import os
 import PIL.Image, PIL.ImageTk
@@ -7,7 +6,7 @@ import cv2
 import camera
 import logger
 import model
-import speech_recognition as sr
+import speech_recognizer
 import threading
 
 
@@ -26,7 +25,7 @@ class App:
         self.model_trained = False
 
         # Initialize speech recognizer instance
-        self.recognizer = sr.Recognizer()
+        self.recognizer = speech_recognizer.SpeechRecognizer()
         self.recognition_enabled = False
 
         # Counters and toggle counting
@@ -99,32 +98,28 @@ class App:
 
     def toggle_speech_recognition(self):
         self.recognition_enabled = True
-        with sr.Microphone() as source:
-            try:
-                audio = self.recognizer.listen(source)
-                recognized_text = self.recognizer.recognize_google(audio).lower()
-                self.logger.log_message(f"You said: {recognized_text}")
-                if recognized_text == "first class":
-                    for i in range(50):
-                        self.save_for_class(1)
-                elif recognized_text == "second class":
-                    for i in range(50):
-                        self.save_for_class(2)
-                elif recognized_text == "train model":
-                    self.toggle_train_model()
-                elif recognized_text == "count":
-                    if self.model_trained:
-                        self.toggle_counting()
-                    else:
-                        self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
-                elif recognized_text == "reset":
-                    self.reset()
-                else:
-                    self.logger.log_message(message="Try once more, you can use phrases like:\n"
-                                             "first class, second class, train model, count, reset", msg_type='warning')
-                    self.toggle_speech_recognition()
-            except sr.UnknownValueError:
-                self.logger.log_message(message="Couldn't recognize, press the button again", msg_type='warning')
+
+        recognized_text, message, msg_type = self.recognizer.recognize_speech()
+        self.logger.log_message(f"You said: {recognized_text}")
+
+        if recognized_text == "first class":
+            for i in range(50):
+                self.save_for_class(1)
+        elif recognized_text == "second class":
+            for i in range(50):
+                self.save_for_class(2)
+        elif recognized_text == "train model":
+            self.toggle_train_model()
+        elif recognized_text == "count":
+            if self.model_trained:
+                self.toggle_counting()
+            else:
+                self.logger.log_message(message="Can't start counting until model is trained", msg_type='warning')
+        elif recognized_text == "reset":
+            self.reset()
+        else:
+            self.logger.log_message(message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset", msg_type='warning')
+            self.toggle_speech_recognition()
 
         self.recognition_enabled = False
 
