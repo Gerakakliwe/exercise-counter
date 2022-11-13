@@ -2,14 +2,25 @@ import cv2
 import PIL.Image
 import numpy as np
 from sklearn.svm import LinearSVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 
 
 class Model:
 
-    def __init__(self):
-        self.model = LinearSVC()
+    def train_model(self, counters, classifier):
+        if classifier == 'LinearSVC':
+            self.model = LinearSVC()
+        elif classifier == 'KNeighbors':
+            self.model = KNeighborsClassifier()
+        elif classifier == 'RandomForest':
+            self.model = RandomForestClassifier(max_depth=2, random_state=0)
+        elif classifier == 'AdaBoost':
+            self.model = AdaBoostClassifier()
+        else:
+            print('Something wrong with chosen classifier, using LinearSVC')
+            self.model = LinearSVC()
 
-    def train_model(self, counters):
         img_list = np.array([])
         class_list = np.array([])
 
@@ -35,7 +46,7 @@ class Model:
         img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
         img.save("frame.jpg")
 
-        img = cv2.imread("frame.jpg")[:,:,0]
+        img = cv2.imread("frame.jpg")[:, :, 0]
         img = img.reshape(16950)
         prediction = self.model.predict([img])
 
