@@ -1,5 +1,6 @@
 import shutil
 import tkinter as tk
+import tkinter.filedialog
 from tkinter import StringVar
 import os
 import PIL.Image, PIL.ImageTk
@@ -11,6 +12,9 @@ import speech_recognizer
 import asyncio
 import pickle
 
+CLASSIFIERS = ['LinearSVC', 'KNeighbors', 'RandomForest', 'AdaBoost']
+PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
+
 
 def background(f):
     def wrapped(*args, **kwargs):
@@ -19,8 +23,8 @@ def background(f):
     return wrapped
 
 
-CLASSIFIERS = ['LinearSVC', 'KNeighbors', 'RandomForest', 'AdaBoost']
-PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
+def open_file():
+    return tk.filedialog.askopenfilename()
 
 
 class App:
@@ -124,7 +128,7 @@ class App:
         self.label_toggle_train.grid(row=4, column=2, padx=5, pady=5, stick='we')
 
         self.btn_load_model = tk.Button(self.window, text="LOAD MODEL", command=self.load_model, height=2,
-                                   width=14, font=("Arial", 14))
+                                        width=14, font=("Arial", 14))
         self.btn_load_model.grid(row=4, column=3, padx=5, pady=5, stick='we')
 
         self.btn_load_model = tk.Button(self.window, text="SAVE MODEL", command=self.save_model, height=2,
@@ -199,7 +203,7 @@ class App:
             self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 
     def load_model(self):
-        model_filename = "saved_model.pkl"
+        model_filename = open_file()
         with open(model_filename, 'rb') as file:
             self.model = pickle.load(file)
 
@@ -207,7 +211,7 @@ class App:
         self.btn_toggle_count['state'] = 'active'
 
     def save_model(self):
-        model_filename = "saved_model.pkl"
+        model_filename = tk.filedialog.asksaveasfilename()
         with open(model_filename, 'wb') as file:
             pickle.dump(self.model, file)
 
