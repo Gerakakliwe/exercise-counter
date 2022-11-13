@@ -9,6 +9,7 @@ import logger
 import model
 import speech_recognizer
 import asyncio
+import pickle
 
 
 def background(f):
@@ -70,7 +71,7 @@ class App:
 
     def init_gui(self):
         self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
-        self.canvas.grid(row=0, column=0, columnspan='3', stick='we')
+        self.canvas.grid(row=0, column=0, columnspan='4', stick='we')
 
         self.btn_toggle_speech_rc = tk.Button(self.window, text="MICROPHONE",
                                               command=lambda: self.toggle_speech_recognition(), height=2, width=14,
@@ -122,6 +123,14 @@ class App:
         self.label_toggle_train = tk.Label(self.window, text="UNTRAINED", height=2, width=10, font=("Arial", 18))
         self.label_toggle_train.grid(row=4, column=2, padx=5, pady=5, stick='we')
 
+        self.btn_load_model = tk.Button(self.window, text="LOAD MODEL", command=self.load_model, height=2,
+                                   width=14, font=("Arial", 14))
+        self.btn_load_model.grid(row=4, column=3, padx=5, pady=5, stick='we')
+
+        self.btn_load_model = tk.Button(self.window, text="SAVE MODEL", command=self.save_model, height=2,
+                                        width=14, font=("Arial", 14))
+        self.btn_load_model.grid(row=3, column=3, padx=5, pady=5, stick='we')
+
         self.btn_reset_photos = tk.Button(self.window, text="RESET PHOTOS", command=self.reset_photos, height=2,
                                           width=14,
                                           font=("Arial", 14))
@@ -135,10 +144,10 @@ class App:
         self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
 
         self.place_for_text = tk.Text(self.window, width=45, height=38, font=("Helvetica", 14), state='disabled')
-        self.place_for_text.grid(row=0, column=3, padx=5, pady=5, rowspan='6', stick='we')
+        self.place_for_text.grid(row=0, column=4, padx=5, pady=5, rowspan='6', stick='we')
 
         self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
-        self.btn_clean.grid(row=6, column=3, padx=5, pady=5, stick='we')
+        self.btn_clean.grid(row=6, column=4, padx=5, pady=5, stick='we')
 
     def execute_recognized_text(self, recognized_text):
         self.logger.log_message("Executing recognized text...")
@@ -188,6 +197,19 @@ class App:
             self.logger.log_message(message="Model successfully trained", msg_type='success')
         except Exception:
             self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
+
+    def load_model(self):
+        model_filename = "saved_model.pkl"
+        with open(model_filename, 'rb') as file:
+            self.model = pickle.load(file)
+
+        self.model_trained = True
+        self.btn_toggle_count['state'] = 'active'
+
+    def save_model(self):
+        model_filename = "saved_model.pkl"
+        with open(model_filename, 'wb') as file:
+            pickle.dump(self.model, file)
 
     def update(self):
         # Toggle counting
