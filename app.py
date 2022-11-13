@@ -10,9 +10,9 @@ import model
 import speech_recognizer
 import threading
 
-IMAGES_TO_TAKE = 50
 CLASSIFIERS = ['LinearSVC', 'KNeighbors', 'RandomForest', 'AdaBoost']
 PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
+
 
 class App:
 
@@ -84,11 +84,15 @@ class App:
         self.cb_classifiers.config(width=12, height=2, font=("Arial", 14))
         self.cb_classifiers.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="CONTRACTED", command=lambda: self.save_for_class(1), height=2,
+        self.btn_class_one = tk.Button(self.window, text="CONTRACTED",
+                                       command=lambda: self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:])),
+                                       height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="EXTENDED", command=lambda: self.save_for_class(2), height=2,
+        self.btn_class_two = tk.Button(self.window, text="EXTENDED",
+                                       command=lambda: self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:])),
+                                       height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=2, padx=5, pady=5, stick='we')
 
@@ -130,11 +134,9 @@ class App:
                 self.logger.log_message(f"You said: {recognized_text}")
 
                 if recognized_text == "first class":
-                    for i in range(IMAGES_TO_TAKE):
-                        self.save_for_class(1, i + 1, IMAGES_TO_TAKE)
+                    self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]))
                 elif recognized_text == "second class":
-                    for i in range(IMAGES_TO_TAKE):
-                        self.save_for_class(2, i + 1, IMAGES_TO_TAKE)
+                    self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]))
                 elif recognized_text == "train model":
                     self.toggle_train_model()
                 elif recognized_text == "count":
@@ -164,7 +166,8 @@ class App:
 
     def toggle_train_model(self):
         try:
-            self.logger.log_message(message=f"Training model using {self.chosen_classifier.get()} classifier", msg_type='success')
+            self.logger.log_message(message=f"Training model using {self.chosen_classifier.get()} classifier",
+                                    msg_type='success')
             self.model.train_model(self.counters, self.chosen_classifier.get())
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
@@ -233,31 +236,32 @@ class App:
             self.logger.log_message(message="Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
-    def save_for_class(self, class_num, loop_counter=1, amount=1):
-        # Get image from camera
-        ret, frame = self.camera.get_frame()
+    def take_photo_for_class(self, class_num, amount=1):
+        for i in range(amount):
+            # Get image from camera
+            ret, frame = self.camera.get_frame()
 
-        # Create folders for photos
-        if not os.path.exists("1"):
-            os.mkdir("1")
-        if not os.path.exists("2"):
-            os.mkdir("2")
+            # Create folders for photos
+            if not os.path.exists("1"):
+                os.mkdir("1")
+            if not os.path.exists("2"):
+                os.mkdir("2")
 
-        # Work with image, save, recolor to gray
-        cv2.imwrite(f"{class_num}/frame{self.counters[class_num - 1]}.jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY))
-        # Open image
-        img = PIL.Image.open(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
-        # Resize image, image antialiasing
-        img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
-        # Save updated image
-        img.save(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
-        # Increment counters
-        self.counters[class_num - 1] += 1
-        # Log message
-        if amount == 1:
-            self.logger.log_message(message=f"Image for the class {class_num} has been saved")
-        else:
-            self.logger.log_message(message=f"Image for the class {class_num} has been saved ({loop_counter}/{amount})")
+            # Work with image, save, recolor to gray
+            cv2.imwrite(f"{class_num}/frame{self.counters[class_num - 1]}.jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY))
+            # Open image
+            img = PIL.Image.open(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
+            # Resize image, image antialiasing
+            img.thumbnail((150, 150), PIL.Image.ANTIALIAS)
+            # Save updated image
+            img.save(f"{class_num}/frame{self.counters[class_num - 1]}.jpg")
+            # Increment counters
+            self.counters[class_num - 1] += 1
+            # Log message
+            if amount == 1:
+                self.logger.log_message(message=f"Image for the class {class_num} has been saved")
+            else:
+                self.logger.log_message(message=f"Image for the class {class_num} has been saved ({i + 1}/{amount})")
 
     def reset(self):
         if os.path.exists("1"):
