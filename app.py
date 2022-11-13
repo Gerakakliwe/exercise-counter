@@ -122,9 +122,14 @@ class App:
         self.label_toggle_train = tk.Label(self.window, text="UNTRAINED", height=2, width=10, font=("Arial", 18))
         self.label_toggle_train.grid(row=4, column=2, padx=5, pady=5, stick='we')
 
-        self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, width=14,
+        self.btn_reset_photos = tk.Button(self.window, text="RESET PHOTOS", command=self.reset_photos, height=2,
+                                          width=14,
+                                          font=("Arial", 14))
+        self.btn_reset_photos.grid(row=5, column=0, padx=5, pady=5, stick='we')
+
+        self.btn_reset = tk.Button(self.window, text="RESET ALL", command=self.reset, height=2, width=14,
                                    font=("Arial", 14))
-        self.btn_reset.grid(row=5, column=0, columnspan='3', padx=5, pady=5, stick='we')
+        self.btn_reset.grid(row=5, column=1, columnspan='2', padx=5, pady=5, stick='we')
 
         self.label_rep_counter = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
@@ -291,7 +296,15 @@ class App:
         self.model_trained = False
         self.counting_enabled = False
         self.recognition_enabled = False
-        self.logger.log_message("Data has been reset", msg_type='warning')
+        self.logger.log_message("All data has been reset", msg_type='warning')
+
+    def reset_photos(self):
+        if os.path.exists("1"):
+            shutil.rmtree("1")
+        if os.path.exists("2"):
+            shutil.rmtree("2")
+        self.counters = [0, 0]
+        self.logger.log_message("Photos has been reset", msg_type='warning')
 
     def clean(self):
         self.place_for_text.config(state='normal')
