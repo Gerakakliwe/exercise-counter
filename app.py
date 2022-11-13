@@ -8,7 +8,15 @@ import camera
 import logger
 import model
 import speech_recognizer
-import threading
+import asyncio
+
+
+def background(f):
+    def wrapped(*args, **kwargs):
+        return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
+
+    return wrapped
+
 
 CLASSIFIERS = ['LinearSVC', 'KNeighbors', 'RandomForest', 'AdaBoost']
 PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
@@ -31,6 +39,7 @@ class App:
         # Initialize speech recognizer instance
         self.recognizer = speech_recognizer.SpeechRecognizer()
         self.recognition_enabled = False
+        self.recognized_text = None
 
         # Counters and toggle counting
         self.counters = [0, 0]
@@ -64,7 +73,7 @@ class App:
         self.canvas.grid(row=0, column=0, columnspan='3', stick='we')
 
         self.btn_toggle_speech_rc = tk.Button(self.window, text="MICROPHONE",
-                                              command=self.threading_toggle_speech_recognition, height=2, width=14,
+                                              command=lambda: self.toggle_speech_recognition(), height=2, width=14,
                                               font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
@@ -85,13 +94,17 @@ class App:
         self.cb_classifiers.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
         self.btn_class_one = tk.Button(self.window, text="CONTRACTED",
-                                       command=lambda: self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:])),
+                                       command=lambda: self.take_photo_for_class(1,
+                                                                                 int(self.chosen_photo_amount_per_click.get()[
+                                                                                     5:])),
                                        height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=1, padx=5, pady=5, stick='we')
 
         self.btn_class_two = tk.Button(self.window, text="EXTENDED",
-                                       command=lambda: self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:])),
+                                       command=lambda: self.take_photo_for_class(2,
+                                                                                 int(self.chosen_photo_amount_per_click.get()[
+                                                                                     5:])),
                                        height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=2, padx=5, pady=5, stick='we')
@@ -102,15 +115,16 @@ class App:
         self.cb_classifiers.config(width=12, height=2, font=("Arial", 14))
         self.cb_classifiers.grid(row=4, column=0, padx=5, pady=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.threading_toggle_train_model, height=2,
+        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.toggle_train_model, height=2,
                                    width=14, font=("Arial", 14))
         self.btn_train.grid(row=4, column=1, padx=5, pady=5, stick='we')
 
         self.label_toggle_train = tk.Label(self.window, text="UNTRAINED", height=2, width=10, font=("Arial", 18))
         self.label_toggle_train.grid(row=4, column=2, padx=5, pady=5, stick='we')
 
-        self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, width=14, font=("Arial", 14))
-        self.btn_reset.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_reset = tk.Button(self.window, text="RESET", command=self.reset, height=2, width=14,
+                                   font=("Arial", 14))
+        self.btn_reset.grid(row=5, column=0, columnspan='3', padx=5, pady=5, stick='we')
 
         self.label_rep_counter = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
@@ -121,49 +135,44 @@ class App:
         self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
         self.btn_clean.grid(row=6, column=3, padx=5, pady=5, stick='we')
 
-    def threading_toggle_speech_recognition(self):
-        speech_recognition_thread = threading.Thread(target=self.toggle_speech_recognition)
-        speech_recognition_thread.start()
+    def execute_recognized_text(self, recognized_text):
+        self.logger.log_message("Executing recognized text...")
+        if recognized_text == "first class":
+            self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]))
+        elif recognized_text == "second class":
+            self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]))
+        elif recognized_text in ["train model", "train"]:
+            self.toggle_train_model()
+        elif recognized_text == "count":
+            if self.model_trained:
+                self.toggle_counting()
+            else:
+                self.logger.log_message(message="Can't start counting until model is trained",
+                                        msg_type='warning')
+        elif recognized_text == "reset":
+            self.reset()
+        elif recognized_text == "clean":
+            self.clean()
+        else:
+            self.logger.log_message(
+                message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
+                msg_type='warning')
 
+    @background
     def toggle_speech_recognition(self):
         self.recognition_enabled = True
         self.logger.log_message(f"Speech recognition has been enabled")
         if self.recognition_enabled:
             try:
-                recognized_text = self.recognizer.recognize_speech()
-                self.logger.log_message(f"You said: {recognized_text}")
-
-                if recognized_text == "first class":
-                    self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]))
-                elif recognized_text == "second class":
-                    self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]))
-                elif recognized_text == "train model":
-                    self.toggle_train_model()
-                elif recognized_text == "count":
-                    if self.model_trained:
-                        self.toggle_counting()
-                    else:
-                        self.logger.log_message(message="Can't start counting until model is trained",
-                                                msg_type='warning')
-                elif recognized_text == "reset":
-                    self.reset()
-                elif recognized_text == "clean":
-                    self.clean()
-                else:
-                    self.logger.log_message(
-                        message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
-                        msg_type='warning')
-                    self.toggle_speech_recognition()
+                self.recognized_text = self.recognizer.recognize_speech()
+                self.logger.log_message(f"You said: {self.recognized_text}")
             except Exception:
                 self.logger.log_message(message="Couldn't recognize text, push the button once more",
                                         msg_type='warning')
         self.recognition_enabled = False
         self.logger.log_message(f"Speech recognition has been disabled")
 
-    def threading_toggle_train_model(self):
-        train_model_thread = threading.Thread(target=self.toggle_train_model)
-        train_model_thread.start()
-
+    @background
     def toggle_train_model(self):
         try:
             self.logger.log_message(message=f"Training model using {self.chosen_classifier.get()} classifier",
@@ -179,6 +188,10 @@ class App:
         # Toggle counting
         if self.counting_enabled:
             self.predict()
+
+        if self.recognized_text:
+            self.execute_recognized_text(self.recognized_text)
+            self.recognized_text = None
 
         # Rep is done, increment counter, write log message
         if self.extended and self.contracted:
@@ -236,7 +249,8 @@ class App:
             self.logger.log_message(message="Counting has been enabled")
         self.counting_enabled = not self.counting_enabled
 
-    def take_photo_for_class(self, class_num, amount=1):
+    @background
+    def take_photo_for_class(self, class_num, amount):
         for i in range(amount):
             # Get image from camera
             ret, frame = self.camera.get_frame()
