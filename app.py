@@ -12,7 +12,7 @@ import speech_recognizer
 import asyncio
 import pickle
 
-CLASSIFIERS = ['LinearSVC', 'KNeighbors', 'RandomForest', 'AdaBoost']
+CLASSIFIERS = ['Auto (best)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
 
 
@@ -195,7 +195,7 @@ class App:
         try:
             self.logger.log_message(message=f"Training model using {self.chosen_classifier.get()} classifier",
                                     msg_type='success')
-            self.model.train_model(self.counters, self.chosen_classifier.get())
+            self.model.train_model(self.chosen_classifier.get(), self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
             self.logger.log_message(message="Model successfully trained", msg_type='success')
