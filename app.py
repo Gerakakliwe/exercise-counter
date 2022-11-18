@@ -198,7 +198,7 @@ class App:
             self.model.train_model(self.chosen_classifier.get(), self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
-            self.logger.log_message(message="Model successfully trained", msg_type='success')
+            self.logger.log_message(message=f"Model successfully trained using {str(self.model.model)[:-2]}", msg_type='success')
         except Exception:
             self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 

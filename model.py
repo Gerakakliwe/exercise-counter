@@ -24,7 +24,7 @@ class Model:
         else:
             model_knn = KNeighborsClassifier()
             model_knn.fit(x_train, y_train)
-            pred_knn = model_linear.predict(x_test)
+            pred_knn = model_knn.predict(x_test)
             accuracy_knn = accuracy_score(y_test, pred_knn)
             print(f"Accuracy of KNeighborsClassifier is: {accuracy_knn}")
             if accuracy_knn == 1.0:
@@ -33,7 +33,7 @@ class Model:
             else:
                 model_random_forest = RandomForestClassifier(max_depth=2, random_state=0)
                 model_random_forest.fit(x_train, y_train)
-                pred_random_forest = model_linear.predict(x_test)
+                pred_random_forest = model_random_forest.predict(x_test)
                 accuracy_random_forest = accuracy_score(y_test, pred_random_forest)
                 print(f"Accuracy of RandomForestClassifier is: {accuracy_random_forest}")
                 if accuracy_random_forest == 1.0:
