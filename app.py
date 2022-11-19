@@ -1,4 +1,5 @@
 import shutil
+import time
 import tkinter as tk
 import tkinter.filedialog
 from tkinter import StringVar
@@ -13,7 +14,8 @@ import asyncio
 import pickle
 
 CLASSIFIERS = ['Auto (best)', 'LinearSVC', 'KNeighbors', 'RandomForest']
-PHOTO_BATCH = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
+PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
+DELAY_OPTIONS = ['Immediately', '1 sec delay', '3 sec delay', '5 sec delay']
 
 
 def background(f):
@@ -93,15 +95,15 @@ class App:
         self.label_toggle_count.grid(row=2, column=2, padx=5, pady=5, stick='we')
 
         self.chosen_photo_amount_per_click = StringVar()
-        self.chosen_photo_amount_per_click.set(PHOTO_BATCH[0])
-        self.cb_classifiers = tk.OptionMenu(self.window, self.chosen_photo_amount_per_click, *PHOTO_BATCH)
-        self.cb_classifiers.config(width=12, height=2, font=("Arial", 14))
-        self.cb_classifiers.grid(row=3, column=0, padx=5, pady=5, stick='we')
+        self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
+        self.cb_photo_amount = tk.OptionMenu(self.window, self.chosen_photo_amount_per_click, *PHOTO_BATCH_OPTIONS)
+        self.cb_photo_amount.config(width=12, height=2, font=("Arial", 14))
+        self.cb_photo_amount.grid(row=3, column=0, padx=5, pady=5, stick='we')
 
         self.btn_class_one = tk.Button(self.window, text="CONTRACTED",
                                        command=lambda: self.take_photo_for_class(1,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
-                                                                                     5:])),
+                                                                                     5:]), self.chosen_delay.get()),
                                        height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=1, padx=5, pady=5, stick='we')
@@ -109,7 +111,7 @@ class App:
         self.btn_class_two = tk.Button(self.window, text="EXTENDED",
                                        command=lambda: self.take_photo_for_class(2,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
-                                                                                     5:])),
+                                                                                     5:]), self.chosen_delay.get()),
                                        height=2,
                                        width=14, font=("Arial", 14))
         self.btn_class_two.grid(row=3, column=2, padx=5, pady=5, stick='we')
@@ -134,6 +136,12 @@ class App:
         self.btn_load_model = tk.Button(self.window, text="SAVE MODEL", command=self.save_model, height=2,
                                         width=14, font=("Arial", 14))
         self.btn_load_model.grid(row=3, column=3, padx=5, pady=5, stick='we')
+
+        self.chosen_delay = StringVar()
+        self.chosen_delay.set(DELAY_OPTIONS[0])
+        self.cb_delay_options = tk.OptionMenu(self.window, self.chosen_delay, *DELAY_OPTIONS)
+        self.cb_delay_options.config(width=12, height=2, font=("Arial", 14))
+        self.cb_delay_options.grid(row=5, column=3, padx=5, pady=5, stick='we')
 
         self.btn_reset_photos = tk.Button(self.window, text="RESET PHOTOS", command=self.reset_photos, height=2,
                                           width=14,
@@ -281,7 +289,16 @@ class App:
         self.counting_enabled = not self.counting_enabled
 
     @background
-    def take_photo_for_class(self, class_num, amount):
+    def take_photo_for_class(self, class_num, amount, delay):
+        if delay == '1 sec delay':
+            self.countdown(1)
+        elif delay == '3 sec delay':
+            self.countdown(3)
+        elif delay == '5 sec delay':
+            self.countdown(5)
+        else:
+            pass
+
         for i in range(amount):
             # Get image from camera
             ret, frame = self.camera.get_frame()
@@ -337,3 +354,10 @@ class App:
         self.place_for_text.delete('1.0', tk.END)
         self.logger.log_message(message="Text widget has been cleaned", msg_type='default')
         self.place_for_text.config(state='disabled')
+
+    def countdown(self, time_sec):
+        self.logger.log_message(f"Photo will be taken in {time_sec} seconds")
+        while time_sec:
+            self.logger.log_message(f"{time_sec}...")
+            time.sleep(1)
+            time_sec -= 1
