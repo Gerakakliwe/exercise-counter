@@ -1,6 +1,7 @@
 import shutil
 import time
 import tkinter as tk
+from tkinter import ttk
 import tkinter.filedialog
 from tkinter import StringVar
 import os
@@ -13,9 +14,10 @@ import speech_recognizer
 import asyncio
 import pickle
 
-CLASSIFIERS = ['Auto (best)', 'LinearSVC', 'KNeighbors', 'RandomForest']
+CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
 DELAY_OPTIONS = ['Immediately', '1 sec delay', '3 sec delay', '5 sec delay']
+EXERCISE_OPTIONS = ['Bicep curls', 'Push-ups', 'Pull-ups', 'Squats']
 
 
 def background(f):
@@ -76,90 +78,131 @@ class App:
         self.window.mainloop()
 
     def init_gui(self):
-        self.canvas = tk.Canvas(self.window, width=self.camera.width, height=self.camera.height)
-        self.canvas.grid(row=0, column=0, columnspan='4', stick='we')
 
-        self.btn_toggle_speech_rc = tk.Button(self.window, text="MICROPHONE",
+        self.notebook = ttk.Notebook(self.window)
+        self.tab1 = ttk.Frame(self.notebook)
+        self.tab2 = ttk.Frame(self.notebook)
+        self.notebook.add(self.tab1, text='Preparing')
+        self.notebook.add(self.tab2, text='Training')
+        self.notebook.grid(column=0, row=0, sticky=tk.E + tk.W + tk.N + tk.S)
+
+        #########
+        # TAB 1 #
+        #########
+
+        self.canvas = tk.Canvas(self.tab1, width=self.camera.width, height=self.camera.height)
+        self.canvas.grid(row=0, column=0, columnspan='2', stick='we')
+
+        self.btn_toggle_speech_rc = tk.Button(self.tab1, text="MICROPHONE",
                                               command=lambda: self.toggle_speech_recognition(), height=2, width=14,
                                               font=("Arial", 14))
-        self.btn_toggle_speech_rc.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, stick='we')
 
-        self.label_toggle_speech_rc = tk.Label(self.window, text="OFF", font=("Arial", 36))
-        self.label_toggle_speech_rc.grid(row=1, column=2, padx=5, pady=5, stick='we')
-
-        self.btn_toggle_count = tk.Button(self.window, text="COUNTING", command=lambda: self.toggle_counting(),
-                                          height=2, width=14, font=("Arial", 14), state="disabled")
-        self.btn_toggle_count.grid(row=2, column=0, columnspan='2', padx=5, pady=5, stick='we')
-
-        self.label_toggle_count = tk.Label(self.window, text="OFF", font=("Arial", 36))
-        self.label_toggle_count.grid(row=2, column=2, padx=5, pady=5, stick='we')
+        self.label_toggle_speech_rc = tk.Label(self.tab1, text="OFF", font=("Arial", 36))
+        self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, stick='we')
 
         self.chosen_photo_amount_per_click = StringVar()
         self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
-        self.cb_photo_amount = tk.OptionMenu(self.window, self.chosen_photo_amount_per_click, *PHOTO_BATCH_OPTIONS)
+        self.cb_photo_amount = tk.OptionMenu(self.tab1, self.chosen_photo_amount_per_click, *PHOTO_BATCH_OPTIONS)
         self.cb_photo_amount.config(width=12, height=2, font=("Arial", 14))
-        self.cb_photo_amount.grid(row=3, column=0, padx=5, pady=5, stick='we')
+        self.cb_photo_amount.grid(row=2, column=0, padx=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.window, text="CONTRACTED",
+        self.chosen_delay = StringVar()
+        self.chosen_delay.set(DELAY_OPTIONS[0])
+        self.cb_delay_options = tk.OptionMenu(self.tab1, self.chosen_delay, *DELAY_OPTIONS)
+        self.cb_delay_options.config(width=12, height=2, font=("Arial", 14))
+        self.cb_delay_options.grid(row=2, column=1, padx=5, stick='we')
+
+        self.btn_class_one = tk.Button(self.tab1, text="CONTRACTED",
                                        command=lambda: self.take_photo_for_class(1,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
                                                                                      5:]), self.chosen_delay.get()),
                                        height=2,
                                        width=14, font=("Arial", 14))
-        self.btn_class_one.grid(row=3, column=1, padx=5, pady=5, stick='we')
+        self.btn_class_one.grid(row=3, column=0, padx=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.window, text="EXTENDED",
+        self.btn_class_two = tk.Button(self.tab1, text="EXTENDED",
                                        command=lambda: self.take_photo_for_class(2,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
                                                                                      5:]), self.chosen_delay.get()),
                                        height=2,
                                        width=14, font=("Arial", 14))
-        self.btn_class_two.grid(row=3, column=2, padx=5, pady=5, stick='we')
+        self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
+
+        self.btn_reset_photos = tk.Button(self.tab1, text="RESET PHOTOS", command=self.reset_photos, height=2,
+                                          width=14,
+                                          font=("Arial", 14))
+        self.btn_reset_photos.grid(row=4, column=0, columnspan='2', padx=5, stick='we')
 
         self.chosen_classifier = StringVar()
         self.chosen_classifier.set(CLASSIFIERS[0])
-        self.cb_classifiers = tk.OptionMenu(self.window, self.chosen_classifier, *CLASSIFIERS)
+        self.cb_classifiers = tk.OptionMenu(self.tab1, self.chosen_classifier, *CLASSIFIERS)
         self.cb_classifiers.config(width=12, height=2, font=("Arial", 14))
-        self.cb_classifiers.grid(row=4, column=0, padx=5, pady=5, stick='we')
+        self.cb_classifiers.grid(row=5, column=0, padx=5, stick='we')
 
-        self.btn_train = tk.Button(self.window, text="TRAIN MODEL", command=self.toggle_train_model, height=2,
+        self.chosen_exercise = StringVar()
+        self.chosen_exercise.set(EXERCISE_OPTIONS[0])
+        self.cb_exercises = tk.OptionMenu(self.tab1, self.chosen_exercise, *EXERCISE_OPTIONS)
+        self.cb_exercises.config(width=12, height=2, font=("Arial", 14))
+        self.cb_exercises.grid(row=5, column=1, padx=5, stick='we')
+
+        self.btn_train = tk.Button(self.tab1, text="TRAIN MODEL", command=self.toggle_train_model, height=2,
                                    width=14, font=("Arial", 14))
-        self.btn_train.grid(row=4, column=1, padx=5, pady=5, stick='we')
+        self.btn_train.grid(row=6, column=0, padx=5, stick='we')
 
-        self.label_toggle_train = tk.Label(self.window, text="UNTRAINED", height=2, width=10, font=("Arial", 18))
-        self.label_toggle_train.grid(row=4, column=2, padx=5, pady=5, stick='we')
+        self.label_toggle_train = tk.Label(self.tab1, text="UNTRAINED", height=2, width=10, font=("Arial", 18))
+        self.label_toggle_train.grid(row=6, column=1, padx=5, stick='we')
 
-        self.btn_load_model = tk.Button(self.window, text="LOAD MODEL", command=self.load_model, height=2,
+        self.btn_load_model = tk.Button(self.tab1, text="LOAD MODEL", command=self.load_model, height=2,
                                         width=14, font=("Arial", 14))
-        self.btn_load_model.grid(row=4, column=3, padx=5, pady=5, stick='we')
+        self.btn_load_model.grid(row=7, column=0, padx=5, stick='we')
 
-        self.btn_load_model = tk.Button(self.window, text="SAVE MODEL", command=self.save_model, height=2,
+        self.btn_load_model = tk.Button(self.tab1, text="SAVE MODEL", command=self.save_model, height=2,
                                         width=14, font=("Arial", 14))
-        self.btn_load_model.grid(row=3, column=3, padx=5, pady=5, stick='we')
+        self.btn_load_model.grid(row=7, column=1, padx=5, stick='we')
 
-        self.chosen_delay = StringVar()
-        self.chosen_delay.set(DELAY_OPTIONS[0])
-        self.cb_delay_options = tk.OptionMenu(self.window, self.chosen_delay, *DELAY_OPTIONS)
-        self.cb_delay_options.config(width=12, height=2, font=("Arial", 14))
-        self.cb_delay_options.grid(row=5, column=3, padx=5, pady=5, stick='we')
-
-        self.btn_reset_photos = tk.Button(self.window, text="RESET PHOTOS", command=self.reset_photos, height=2,
-                                          width=14,
-                                          font=("Arial", 14))
-        self.btn_reset_photos.grid(row=5, column=0, padx=5, pady=5, stick='we')
-
-        self.btn_reset = tk.Button(self.window, text="RESET ALL", command=self.reset, height=2, width=14,
+        self.btn_reset = tk.Button(self.tab1, text="RESET ALL", command=self.reset, height=2, width=14,
                                    font=("Arial", 14))
-        self.btn_reset.grid(row=5, column=1, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_reset.grid(row=8, column=0, columnspan='2', padx=5, stick='we')
 
-        self.label_rep_counter = tk.Label(self.window, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.label_rep_counter.grid(row=6, column=0, padx=5, pady=20, columnspan='3', stick='we')
+        #########
+        # TAB 2 #
+        #########
 
-        self.place_for_text = tk.Text(self.window, width=45, height=38, font=("Helvetica", 14), state='disabled')
-        self.place_for_text.grid(row=0, column=4, padx=5, pady=5, rowspan='6', stick='we')
+        self.canvas_tab2 = tk.Canvas(self.tab2, width=self.camera.width, height=self.camera.height)
+        self.canvas_tab2.grid(row=0, column=0, columnspan='2', stick='we')
+
+        self.btn_toggle_speech_rc = tk.Button(self.tab2, text="MICROPHONE",
+                                              command=lambda: self.toggle_speech_recognition(), height=2, width=14,
+                                              font=("Arial", 14))
+        self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, pady=5, stick='we')
+
+        self.label_toggle_speech_rc = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
+        self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, pady=5, stick='we')
+
+        self.btn_toggle_count = tk.Button(self.tab2, text="COUNTING", command=lambda: self.toggle_counting(),
+                                          height=2, width=14, font=("Arial", 14), state="disabled")
+        self.btn_toggle_count.grid(row=2, column=0, padx=5, pady=5, stick='we')
+
+        self.label_toggle_count = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
+        self.label_toggle_count.grid(row=2, column=1, padx=5, pady=5, stick='we')
+
+        self.label_rep_counter = tk.Label(self.tab2, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
+        self.label_rep_counter.grid(row=3, column=0, padx=5, pady=5, columnspan='2', stick='we')
+
+        self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.toggle_counting(),
+                                          height=2, width=14, font=("Arial", 14), state="disabled")
+        self.btn_save_results.grid(row=4, column=0, padx=5, pady=5, stick='we')
+
+        ###########
+        # GENERAL #
+        ###########
+
+        self.place_for_text = tk.Text(self.window, width=45, height=45, font=("Helvetica", 14), state='disabled')
+        self.place_for_text.grid(row=0, column=1, padx=5, pady=5, stick='we')
 
         self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
-        self.btn_clean.grid(row=6, column=4, padx=5, pady=5, stick='we')
+        self.btn_clean.grid(row=0, column=1, padx=5, pady=5, stick='se')
 
     def execute_recognized_text(self, recognized_text):
         self.logger.log_message("Executing recognized text...")
@@ -206,7 +249,8 @@ class App:
             self.model.train_model(self.chosen_classifier.get(), self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
-            self.logger.log_message(message=f"Model successfully trained using {str(self.model.model)[:-2]}", msg_type='success')
+            self.logger.log_message(message=f"Model successfully trained using {str(self.model.model)[:-2]}",
+                                    msg_type='success')
         except Exception:
             self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 
@@ -266,6 +310,7 @@ class App:
         if ret:
             self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
+            self.canvas_tab2.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
         self.window.after(self.delay, self.update)
 
