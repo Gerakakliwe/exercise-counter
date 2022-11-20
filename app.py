@@ -17,7 +17,7 @@ import pickle
 CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
 DELAY_OPTIONS = ['Immediately', '1 sec delay', '3 sec delay', '5 sec delay']
-EXERCISE_OPTIONS = ['Bicep curls', 'Push-ups', 'Pull-ups', 'Squats']
+EXERCISE_OPTIONS = ["CHOOSE EXERCISE", 'Bicep curls', 'Push-ups', 'Pull-ups', 'Squats']
 
 
 def background(f):
@@ -25,10 +25,6 @@ def background(f):
         return asyncio.get_event_loop().run_in_executor(None, f, *args, **kwargs)
 
     return wrapped
-
-
-def open_file():
-    return tk.filedialog.askopenfilename()
 
 
 class App:
@@ -127,7 +123,7 @@ class App:
                                                                                      5:]), self.chosen_delay.get()),
                                        height=2,
                                        width=14, font=("Arial", 14))
-        self.btn_class_two.grid(row=3, column=1, padx=5, pady=5, stick='we')
+        self.btn_class_two.grid(row=3, column=1, padx=5, stick='we')
 
         self.btn_reset_photos = tk.Button(self.tab1, text="RESET PHOTOS", command=self.reset_photos, height=2,
                                           width=14,
@@ -163,7 +159,7 @@ class App:
 
         self.btn_reset = tk.Button(self.tab1, text="RESET ALL", command=self.reset, height=2, width=14,
                                    font=("Arial", 14))
-        self.btn_reset.grid(row=8, column=0, columnspan='2', padx=5, stick='we')
+        self.btn_reset.grid(row=8, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         #########
         # TAB 2 #
@@ -255,19 +251,32 @@ class App:
             self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
 
     def load_model(self):
-        model_filename = open_file()
-        with open(model_filename, 'rb') as file:
-            self.model = pickle.load(file)
+        try:
+            model_filename = tk.filedialog.askopenfilename()
+            with open(model_filename, 'rb') as file:
+                self.model = pickle.load(file)
 
-        self.model_trained = True
-        self.btn_toggle_count['state'] = 'active'
+            self.model_trained = True
+            self.btn_toggle_count['state'] = 'active'
+            self.logger.log_message(f"Model {model_filename} has been loaded")
+        except FileNotFoundError:
+            self.logger.log_message("You have to choose file!")
 
     def save_model(self):
-        model_filename = tk.filedialog.asksaveasfilename()
+        model_filename = 'saved_models/' + self.chosen_exercise.get().replace(' ', '-').lower() + '_' + str(self.model.model)[:-2].lower() + '.pkl'
         with open(model_filename, 'wb') as file:
             pickle.dump(self.model, file)
+            self.logger.log_message(f"Model has been saved in\n{model_filename}")
+
+
 
     def update(self):
+
+        if self.chosen_exercise.get() == 'CHOOSE EXERCISE':
+            self.btn_train['state'] = 'disabled'
+        else:
+            self.btn_train['state'] = 'active'
+
         # Toggle counting
         if self.counting_enabled:
             self.predict()
