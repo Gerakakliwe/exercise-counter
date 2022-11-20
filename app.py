@@ -183,12 +183,16 @@ class App:
         self.label_toggle_count = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
         self.label_toggle_count.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
+        self.label_exercise_name = tk.Label(self.tab2, text=f"Exercise: {self.chosen_exercise.get()}",
+                                            font=("Arial", 30))
+        self.label_exercise_name.grid(row=3, column=0, padx=5, pady=5, columnspan='2', stick='we')
+
         self.label_rep_counter = tk.Label(self.tab2, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.label_rep_counter.grid(row=3, column=0, padx=5, pady=5, columnspan='2', stick='we')
+        self.label_rep_counter.grid(row=4, column=0, padx=5, pady=5, columnspan='2', stick='we')
 
         self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.toggle_counting(),
                                           height=2, width=14, font=("Arial", 14), state="disabled")
-        self.btn_save_results.grid(row=4, column=0, padx=5, pady=5, stick='we')
+        self.btn_save_results.grid(row=5, column=0, padx=5, pady=5, stick='we')
 
         ###########
         # GENERAL #
@@ -258,17 +262,22 @@ class App:
 
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
-            self.logger.log_message(f"Model {model_filename} has been loaded")
+
+            filename = model_filename.rsplit('/', 1)[1]
+            exercise_name = filename.rsplit('_', 1)[0]
+
+            self.chosen_exercise.set(str(exercise_name).capitalize())
+
+            self.logger.log_message(f"Model {filename} has been loaded")
         except FileNotFoundError:
             self.logger.log_message("You have to choose file!")
 
     def save_model(self):
-        model_filename = 'saved_models/' + self.chosen_exercise.get().replace(' ', '-').lower() + '_' + str(self.model.model)[:-2].lower() + '.pkl'
+        model_filename = 'saved_models/' + self.chosen_exercise.get().replace(' ', '-').lower() + '_' + str(
+            self.model.model)[:-2].lower() + '.pkl'
         with open(model_filename, 'wb') as file:
             pickle.dump(self.model, file)
             self.logger.log_message(f"Model has been saved in\n{model_filename}")
-
-
 
     def update(self):
 
@@ -276,6 +285,8 @@ class App:
             self.btn_train['state'] = 'disabled'
         else:
             self.btn_train['state'] = 'active'
+
+        self.label_exercise_name.config(text='Exercise: ' + self.chosen_exercise.get())
 
         # Toggle counting
         if self.counting_enabled:
