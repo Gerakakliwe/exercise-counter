@@ -1,3 +1,5 @@
+import datetime
+import csv
 import shutil
 import time
 import tkinter as tk
@@ -13,6 +15,7 @@ import model
 import speech_recognizer
 import asyncio
 import pickle
+import pandas as pd
 
 CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
@@ -190,7 +193,7 @@ class App:
         self.label_rep_counter = tk.Label(self.tab2, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
         self.label_rep_counter.grid(row=4, column=0, padx=5, pady=5, columnspan='2', stick='we')
 
-        self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.toggle_counting(),
+        self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.save_results(),
                                           height=2, width=14, font=("Arial", 14), state="disabled")
         self.btn_save_results.grid(row=5, column=0, padx=5, pady=5, stick='we')
 
@@ -249,6 +252,7 @@ class App:
             self.model.train_model(self.chosen_classifier.get(), self.counters)
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
+            self.btn_save_results['state'] = 'active'
             self.logger.log_message(message=f"Model successfully trained using {str(self.model.model)[:-2]}",
                                     msg_type='success')
         except Exception:
@@ -262,6 +266,8 @@ class App:
 
             self.model_trained = True
             self.btn_toggle_count['state'] = 'active'
+            self.btn_save_results['state'] = 'active'
+            self.rep_counter = 0
 
             filename = model_filename.rsplit('/', 1)[1]
             exercise_name = filename.rsplit('_', 1)[0]
@@ -426,3 +432,23 @@ class App:
             self.logger.log_message(f"{time_sec}...")
             time.sleep(1)
             time_sec -= 1
+
+    def save_results(self):
+        training_result = [
+            datetime.date.today().strftime("%d/%m/%Y"),  # date
+            self.chosen_exercise.get(),  # exercise
+            self.rep_counter  # reps
+        ]
+        header = ['date', 'exercise', 'reps']
+
+        if not os.path.exists('training_results.csv'):
+            f = open('training_results.csv', 'w', encoding='UTF8', newline='')
+            writer = csv.writer(f)
+            writer.writerow(header)
+            writer.writerow(training_result)
+            f.close()
+        else:
+            f = open('training_results.csv', 'a', encoding='UTF8', newline='')
+            writer = csv.writer(f)
+            writer.writerow(training_result)
+            f.close()
