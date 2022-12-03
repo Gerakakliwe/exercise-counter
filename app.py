@@ -25,7 +25,7 @@ import pandas as pd
 CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
 DELAY_OPTIONS = ['Immediately', '1 sec delay', '3 sec delay', '5 sec delay']
-EXERCISE_OPTIONS = ["CHOOSE EXERCISE", 'Bicep curls', 'Push-ups', 'Pull-ups', 'Squats']
+EXERCISE_OPTIONS = ["CHOOSE EXERCISE", 'Bicep-curls', 'Push-ups', 'Pull-ups', 'Squats']
 
 
 def background(f):
@@ -63,6 +63,8 @@ class App:
         self.extended = False
         self.contracted = False
         self.last_prediction = 0
+
+        self.init_results_for_today()
 
         # Initialize GUI
         self.init_gui()
@@ -236,7 +238,8 @@ class App:
         for c in ax.containers:
             ax.bar_label(c, fmt='%.0f', label_type='edge', padding=2.0)
 
-        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'), title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
+        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'),
+                  title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
 
         canvas = FigureCanvasTkAgg(fig, master=self.tab3)
         canvas.draw()
@@ -484,16 +487,34 @@ class App:
             self.chosen_exercise.get(),  # exercise
             self.rep_counter  # reps
         ]
-        header = ['date', 'exercise', 'reps']
 
+        f = open('training_results.csv', 'a', encoding='UTF8', newline='')
+        writer = csv.writer(f)
+        writer.writerow(training_result)
+        f.close()
+
+    def init_results_for_today(self):
+        header = ['date', 'exercise', 'reps']
         if not os.path.exists('training_results.csv'):
             f = open('training_results.csv', 'w', encoding='UTF8', newline='')
             writer = csv.writer(f)
             writer.writerow(header)
-            writer.writerow(training_result)
+            for exercise in EXERCISE_OPTIONS[1:]:
+                training_result = [
+                    datetime.date.today().strftime("%d/%m"),  # date
+                    exercise,  # exercise
+                    0  # reps
+                ]
+                writer.writerow(training_result)
             f.close()
         else:
             f = open('training_results.csv', 'a', encoding='UTF8', newline='')
             writer = csv.writer(f)
-            writer.writerow(training_result)
+            for exercise in EXERCISE_OPTIONS[1:]:
+                training_result = [
+                    datetime.date.today().strftime("%d/%m"),  # date
+                    exercise,  # exercise
+                    0  # reps
+                ]
+                writer.writerow(training_result)
             f.close()

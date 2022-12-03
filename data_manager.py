@@ -3,10 +3,6 @@ import pandas as pd
 training_data = pd.read_csv('training_results.csv').sort_values(by='date')
 dates = sorted(set(training_data['date']))
 
-# sorted_by_exercise = training_data.groupby(by=['exercise','date'])['reps'].sum()
-# for i in sorted_by_exercise:
-#     print(i)
-
 sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
 
 bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')
