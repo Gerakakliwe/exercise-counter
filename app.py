@@ -7,6 +7,8 @@ from tkinter import ttk
 import tkinter.filedialog
 from tkinter import StringVar
 import os
+from tkinter.ttk import Style
+
 import PIL.Image, PIL.ImageTk
 import cv2
 import matplotlib.pyplot as plt
@@ -84,6 +86,20 @@ class App:
         self.window.mainloop()
 
     def init_gui(self):
+
+        Mysky = "#DCF0F2"
+        Myyellow = "#F2C84B"
+
+        style = Style()
+
+        style.theme_create("dummy", parent="alt", settings={
+            "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0]}},
+            "TNotebook.Tab": {
+                "configure": {"padding": [80, 10], "background": Mysky},
+                "map": {"background": [("selected", Myyellow)],
+                        "expand": [("selected", [1, 1, 1, 0])]}}})
+
+        style.theme_use("dummy")
 
         self.notebook = ttk.Notebook(self.window)
         self.tab1 = ttk.Frame(self.notebook)
@@ -210,40 +226,11 @@ class App:
         # TAB 3 #
         #########
 
-        training_data = pd.read_csv('training_results.csv').sort_values(by='date')
-        dates = sorted(set(training_data['date']))
+        fig = self.pack_statistics()
 
-        N = len(dates)
-        ind = np.arange(N)
-        width = 0.22
-
-        fig = Figure(figsize=(6.35, 9.75))
-        ax = fig.add_subplot(111)
-
-        sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
-        bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')['reps']
-        rects1 = ax.barh(ind, bicep_curls_results, width, color='darkgray', linewidth=0.5, edgecolor='black')
-        pull_ups_results = sorted_by_exercise.get_group('Pull-ups')['reps']
-        rects2 = ax.barh(ind + width, pull_ups_results, width, color='powderblue', linewidth=0.5, edgecolor='black')
-        push_ups_results = sorted_by_exercise.get_group('Push-ups')['reps']
-        rects3 = ax.barh(ind + width * 2, push_ups_results, width, color='bisque', linewidth=0.5, edgecolor='black')
-        squats_results = sorted_by_exercise.get_group('Squats')['reps']
-        rects4 = ax.barh(ind + width * 3, squats_results, width, color='thistle', linewidth=0.5, edgecolor='black')
-
-        ax.set_xlabel('Reps per day')
-        ax.set_yticks(ind + width)
-        ax.set_yticklabels(dates)
-        ax.invert_yaxis()
-
-        for c in ax.containers:
-            ax.bar_label(c, fmt='%.0f', label_type='edge', padding=2.0)
-
-        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'),
-                  title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
-
-        canvas = FigureCanvasTkAgg(fig, master=self.tab3)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=0, column=0, stick='we')
+        self.statistics_canvas = FigureCanvasTkAgg(fig, master=self.tab3)
+        self.statistics_canvas.draw()
+        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, stick='we')
 
         ###########
         # GENERAL #
@@ -518,3 +505,37 @@ class App:
                 ]
                 writer.writerow(training_result)
             f.close()
+
+    def pack_statistics(self):
+        training_data = pd.read_csv('training_results.csv').sort_values(by='date')
+        dates = sorted(set(training_data['date']))
+
+        N = len(dates)
+        ind = np.arange(N)
+        width = 0.22
+
+        fig = Figure(figsize=(6.35, 9.75))
+        ax = fig.add_subplot(111)
+
+        sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
+        bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')['reps']
+        rects1 = ax.barh(ind, bicep_curls_results, width, color='darkgray', linewidth=0.5, edgecolor='black')
+        pull_ups_results = sorted_by_exercise.get_group('Pull-ups')['reps']
+        rects2 = ax.barh(ind + width, pull_ups_results, width, color='powderblue', linewidth=0.5, edgecolor='black')
+        push_ups_results = sorted_by_exercise.get_group('Push-ups')['reps']
+        rects3 = ax.barh(ind + width * 2, push_ups_results, width, color='bisque', linewidth=0.5, edgecolor='black')
+        squats_results = sorted_by_exercise.get_group('Squats')['reps']
+        rects4 = ax.barh(ind + width * 3, squats_results, width, color='thistle', linewidth=0.5, edgecolor='black')
+
+        ax.set_xlabel('Reps per day')
+        ax.set_yticks(ind + width)
+        ax.set_yticklabels(dates)
+        ax.invert_yaxis()
+
+        for c in ax.containers:
+            ax.bar_label(c, fmt='%.0f', label_type='edge', padding=2.0)
+
+        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'),
+                  title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
+
+        return fig
