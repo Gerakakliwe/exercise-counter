@@ -67,6 +67,7 @@ class App:
         self.last_prediction = 0
 
         self.init_results_for_today()
+        self.statistics = self.pack_statistics()
 
         # Initialize GUI
         self.init_gui()
@@ -225,12 +226,13 @@ class App:
         #########
         # TAB 3 #
         #########
-
-        fig = self.pack_statistics()
-
-        self.statistics_canvas = FigureCanvasTkAgg(fig, master=self.tab3)
+        self.statistics_canvas = FigureCanvasTkAgg(self.statistics, master=self.tab3)
         self.statistics_canvas.draw()
         self.statistics_canvas.get_tk_widget().grid(row=0, column=0, stick='we')
+
+        self.btn_update_canvas = tk.Button(self.tab3, text="UPDATE", command=lambda: self.redraw_statistics(),
+                                          height=2, width=14, font=("Arial", 14))
+        self.btn_update_canvas.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
         ###########
         # GENERAL #
@@ -514,7 +516,7 @@ class App:
         ind = np.arange(N)
         width = 0.22
 
-        fig = Figure(figsize=(6.35, 9.75))
+        fig = Figure(figsize=(6.45, 9))
         ax = fig.add_subplot(111)
 
         sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
@@ -539,3 +541,10 @@ class App:
                   title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
 
         return fig
+
+    def redraw_statistics(self):
+        self.statistics = self.pack_statistics()
+        self.statistics_canvas = FigureCanvasTkAgg(self.statistics, master=self.tab3)
+        self.statistics_canvas.draw()
+        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, stick='we')
+
