@@ -208,25 +208,45 @@ class App:
         # TAB 3 #
         #########
 
-        fig = Figure(figsize=(6.35,4))
-        subplot = fig.add_subplot(111)
         training_data = pd.read_csv('training_results.csv').sort_values(by='date')
         dates = sorted(set(training_data['date']))
-        dates_axis = np.arange(len(dates))
-        subplot.xticks(dates_axis, dates)
+
+        N = len(dates)
+        ind = np.arange(N)
+        width = 0.2
+
+        fig = Figure()
+        ax = fig.add_subplot(111)
+
         sorted_by_exercise = training_data.groupby(by='exercise')
-        for exercise in sorted_by_exercise:
-            print(dates)
+        bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')['reps']
+        rects1 = ax.bar(ind, bicep_curls_results, width, color='darkgray')
+        pull_ups_results = sorted_by_exercise.get_group('Pull-ups')['reps']
+        rects2 = ax.bar(ind + width, pull_ups_results, width, color='powderblue')
+        push_ups_results = sorted_by_exercise.get_group('Push-ups')['reps']
+        rects3 = ax.bar(ind + width * 2, push_ups_results, width, color='bisque')
+        squats_results = sorted_by_exercise.get_group('Squats')['reps']
+        rects4 = ax.bar(ind + width * 3, squats_results, width, color='thistle')
 
+        ax.set_ylabel('Reps per day')
+        ax.set_xticks(ind + width)
+        ax.set_xticklabels(dates)
+        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'))
 
+        def autolabel(rects):
+            for rect in rects:
+                h = rect.get_height()
+                ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * h, '%d' % int(h),
+                        ha='center', va='bottom')
 
+        autolabel(rects1)
+        autolabel(rects2)
+        autolabel(rects3)
+        autolabel(rects4)
 
         canvas = FigureCanvasTkAgg(fig, master=self.tab3)
         canvas.draw()
         canvas.get_tk_widget().grid(row=0, column=0, padx=5, pady=5, stick='we')
-
-        # self.canvas_tab3 = tk.Canvas(self.tab3, width=self.camera.width, height=self.camera.height)
-        # self.canvas_tab3.grid(row=0, column=0, columnspan='2', stick='we')
 
         ###########
         # GENERAL #
