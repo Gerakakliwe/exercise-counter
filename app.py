@@ -9,6 +9,11 @@ from tkinter import StringVar
 import os
 import PIL.Image, PIL.ImageTk
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 import camera
 import logger
 import model
@@ -59,8 +64,6 @@ class App:
         self.contracted = False
         self.last_prediction = 0
 
-        self.read_results()
-
         # Initialize GUI
         self.init_gui()
 
@@ -83,8 +86,10 @@ class App:
         self.notebook = ttk.Notebook(self.window)
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
+        self.tab3 = ttk.Frame(self.notebook)
         self.notebook.add(self.tab1, text='Preparing')
         self.notebook.add(self.tab2, text='Training')
+        self.notebook.add(self.tab3, text='Statistics')
         self.notebook.grid(column=0, row=0, sticky=tk.E + tk.W + tk.N + tk.S)
 
         #########
@@ -198,6 +203,30 @@ class App:
         self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.save_results(),
                                           height=2, width=14, font=("Arial", 14), state="disabled")
         self.btn_save_results.grid(row=5, column=0, padx=5, pady=5, stick='we')
+
+        #########
+        # TAB 3 #
+        #########
+
+        fig = Figure(figsize=(6.35,4))
+        subplot = fig.add_subplot(111)
+        training_data = pd.read_csv('training_results.csv').sort_values(by='date')
+        dates = sorted(set(training_data['date']))
+        dates_axis = np.arange(len(dates))
+        subplot.xticks(dates_axis, dates)
+        sorted_by_exercise = training_data.groupby(by='exercise')
+        for exercise in sorted_by_exercise:
+            print(dates)
+
+
+
+
+        canvas = FigureCanvasTkAgg(fig, master=self.tab3)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0, padx=5, pady=5, stick='we')
+
+        # self.canvas_tab3 = tk.Canvas(self.tab3, width=self.camera.width, height=self.camera.height)
+        # self.canvas_tab3.grid(row=0, column=0, columnspan='2', stick='we')
 
         ###########
         # GENERAL #
@@ -454,7 +483,3 @@ class App:
             writer = csv.writer(f)
             writer.writerow(training_result)
             f.close()
-
-    def read_results(self):
-        df = pd.read_csv('training_results.csv')
-        print(df)
