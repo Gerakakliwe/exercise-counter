@@ -213,40 +213,34 @@ class App:
 
         N = len(dates)
         ind = np.arange(N)
-        width = 0.2
+        width = 0.22
 
-        fig = Figure()
+        fig = Figure(figsize=(6.35, 9.75))
         ax = fig.add_subplot(111)
 
         sorted_by_exercise = training_data.groupby(by='exercise')
         bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')['reps']
-        rects1 = ax.bar(ind, bicep_curls_results, width, color='darkgray')
+        rects1 = ax.barh(ind, bicep_curls_results, width, color='darkgray', linewidth=0.5, edgecolor='black')
         pull_ups_results = sorted_by_exercise.get_group('Pull-ups')['reps']
-        rects2 = ax.bar(ind + width, pull_ups_results, width, color='powderblue')
+        rects2 = ax.barh(ind + width, pull_ups_results, width, color='powderblue', linewidth=0.5, edgecolor='black')
         push_ups_results = sorted_by_exercise.get_group('Push-ups')['reps']
-        rects3 = ax.bar(ind + width * 2, push_ups_results, width, color='bisque')
+        rects3 = ax.barh(ind + width * 2, push_ups_results, width, color='bisque', linewidth=0.5, edgecolor='black')
         squats_results = sorted_by_exercise.get_group('Squats')['reps']
-        rects4 = ax.bar(ind + width * 3, squats_results, width, color='thistle')
+        rects4 = ax.barh(ind + width * 3, squats_results, width, color='thistle', linewidth=0.5, edgecolor='black')
 
-        ax.set_ylabel('Reps per day')
-        ax.set_xticks(ind + width)
-        ax.set_xticklabels(dates)
-        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'))
+        ax.set_xlabel('Reps per day')
+        ax.set_yticks(ind + width)
+        ax.set_yticklabels(dates)
+        ax.invert_yaxis()
 
-        def autolabel(rects):
-            for rect in rects:
-                h = rect.get_height()
-                ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * h, '%d' % int(h),
-                        ha='center', va='bottom')
+        for c in ax.containers:
+            ax.bar_label(c, fmt='%.0f', label_type='edge', padding=2.0)
 
-        autolabel(rects1)
-        autolabel(rects2)
-        autolabel(rects3)
-        autolabel(rects4)
+        ax.legend((rects1[0], rects2[0], rects3[0], rects4[0]), ('Bicep-curls', 'Pull-ups', 'Push-ups', 'Squats'), title='Exercises', bbox_to_anchor=(0.5, 1.08), loc='center')
 
         canvas = FigureCanvasTkAgg(fig, master=self.tab3)
         canvas.draw()
-        canvas.get_tk_widget().grid(row=0, column=0, padx=5, pady=5, stick='we')
+        canvas.get_tk_widget().grid(row=0, column=0, stick='we')
 
         ###########
         # GENERAL #
@@ -486,7 +480,7 @@ class App:
 
     def save_results(self):
         training_result = [
-            datetime.date.today().strftime("%d/%m/%Y"),  # date
+            datetime.date.today().strftime("%d/%m"),  # date
             self.chosen_exercise.get(),  # exercise
             self.rep_counter  # reps
         ]
