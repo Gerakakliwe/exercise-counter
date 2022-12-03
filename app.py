@@ -59,6 +59,8 @@ class App:
         self.contracted = False
         self.last_prediction = 0
 
+        self.read_results()
+
         # Initialize GUI
         self.init_gui()
 
@@ -452,3 +454,7 @@ class App:
             writer = csv.writer(f)
             writer.writerow(training_result)
             f.close()
+
+    def read_results(self):
+        df = pd.read_csv('training_results.csv')
+        print(df)
