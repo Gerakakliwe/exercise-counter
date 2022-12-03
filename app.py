@@ -218,7 +218,7 @@ class App:
         fig = Figure(figsize=(6.35, 9.75))
         ax = fig.add_subplot(111)
 
-        sorted_by_exercise = training_data.groupby(by='exercise')
+        sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
         bicep_curls_results = sorted_by_exercise.get_group('Bicep-curls')['reps']
         rects1 = ax.barh(ind, bicep_curls_results, width, color='darkgray', linewidth=0.5, edgecolor='black')
         pull_ups_results = sorted_by_exercise.get_group('Pull-ups')['reps']
