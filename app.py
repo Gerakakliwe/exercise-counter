@@ -220,8 +220,12 @@ class App:
         self.label_rep_counter.grid(row=4, column=0, padx=5, pady=5, columnspan='2', stick='we')
 
         self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.save_results(),
-                                          height=2, width=14, font=("Arial", 14), state="disabled")
-        self.btn_save_results.grid(row=5, column=0, padx=5, pady=5, stick='we')
+                                          height=4, width=14, font=("Arial", 14), state="disabled")
+        self.btn_save_results.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
+
+        self.btn_reset_reps = tk.Button(self.tab2, text="RESET REPS", command=self.reset_rep_counter, height=4, width=14,
+                                   font=("Arial", 14))
+        self.btn_reset_reps.grid(row=6, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         #########
         # TAB 3 #
@@ -457,6 +461,10 @@ class App:
         self.counters = [0, 0]
         self.logger.log_message("Photos has been reset", msg_type='warning')
 
+    def reset_rep_counter(self):
+        self.rep_counter = 0
+        self.logger.log_message("Rep counter has been reset", msg_type='warning')
+
     def clean(self):
         self.place_for_text.config(state='normal')
         self.place_for_text.delete('1.0', tk.END)
@@ -481,6 +489,9 @@ class App:
         writer = csv.writer(f)
         writer.writerow(training_result)
         f.close()
+
+        self.toggle_counting()
+        self.logger.log_message(message="Results have been saved", msg_type='success')
 
     def init_results_for_today(self):
         header = ['date', 'exercise', 'reps']
