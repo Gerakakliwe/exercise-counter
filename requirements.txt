@@ -1,3 +1,6 @@
 opencv-python
 pillow
 scikit-learn
+matplotlib
+SpeechRecognition
+pandas
