@@ -182,9 +182,9 @@ class App:
                                         width=14, font=("Arial", 14))
         self.btn_load_model.grid(row=7, column=0, padx=5, stick='we')
 
-        self.btn_load_model = tk.Button(self.tab1, text="SAVE MODEL", command=self.save_model, height=2,
+        self.btn_save_model = tk.Button(self.tab1, text="SAVE MODEL", command=self.save_model, height=2,
                                         width=14, font=("Arial", 14))
-        self.btn_load_model.grid(row=7, column=1, padx=5, stick='we')
+        self.btn_save_model.grid(row=7, column=1, padx=5, stick='we')
 
         self.btn_reset = tk.Button(self.tab1, text="RESET ALL", command=self.reset, height=2, width=14,
                                    font=("Arial", 14))
@@ -212,20 +212,24 @@ class App:
         self.label_toggle_count = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
         self.label_toggle_count.grid(row=2, column=1, padx=5, pady=5, stick='we')
 
+        self.btn_load_model = tk.Button(self.tab2, text="LOAD MODEL", command=self.load_model, height=2,
+                                        width=14, font=("Arial", 14))
+        self.btn_load_model.grid(row=3, column=0, columnspan='2', padx=5, stick='we')
+
         self.label_exercise_name = tk.Label(self.tab2, text=f"Exercise: {self.chosen_exercise.get()}",
                                             font=("Arial", 30))
-        self.label_exercise_name.grid(row=3, column=0, padx=5, pady=5, columnspan='2', stick='we')
+        self.label_exercise_name.grid(row=4, column=0, padx=5, pady=5, columnspan='2', stick='we')
 
         self.label_rep_counter = tk.Label(self.tab2, text=f"REPS: {self.rep_counter}", font=("Arial", 40))
-        self.label_rep_counter.grid(row=4, column=0, padx=5, pady=5, columnspan='2', stick='we')
+        self.label_rep_counter.grid(row=5, column=0, padx=5, pady=5, columnspan='2', stick='we')
 
         self.btn_save_results = tk.Button(self.tab2, text="SAVE RESULTS", command=lambda: self.save_results(),
-                                          height=4, width=14, font=("Arial", 14), state="disabled")
-        self.btn_save_results.grid(row=5, column=0, columnspan='2', padx=5, pady=5, stick='we')
+                                          height=2, width=14, font=("Arial", 14), state="disabled")
+        self.btn_save_results.grid(row=6, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
-        self.btn_reset_reps = tk.Button(self.tab2, text="RESET REPS", command=self.reset_rep_counter, height=4, width=14,
+        self.btn_reset_reps = tk.Button(self.tab2, text="RESET REPS", command=self.reset_rep_counter, height=2, width=14,
                                    font=("Arial", 14))
-        self.btn_reset_reps.grid(row=6, column=0, columnspan='2', padx=5, pady=5, stick='we')
+        self.btn_reset_reps.grid(row=7, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         #########
         # TAB 3 #
@@ -266,6 +270,12 @@ class App:
             self.reset()
         elif recognized_text == "clean":
             self.clean()
+        elif recognized_text == "save model":
+            self.save_model()
+        elif recognized_text == "load model":
+            self.load_model()
+        elif recognized_text == "save results":
+            self.save_results()
         else:
             self.logger.log_message(
                 message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
