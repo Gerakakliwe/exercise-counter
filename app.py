@@ -253,6 +253,7 @@ class App:
         self.btn_clean.grid(row=0, column=1, padx=5, pady=5, stick='se')
 
     def execute_recognized_text(self, recognized_text):
+
         self.logger.log_message("Executing recognized text...")
         if recognized_text == "first class":
             self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]))
@@ -260,14 +261,21 @@ class App:
             self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]))
         elif recognized_text in ["train model", "train"]:
             self.toggle_train_model()
+
         elif recognized_text == "count":
             if self.model_trained:
                 self.toggle_counting()
             else:
                 self.logger.log_message(message="Can't start counting until model is trained",
                                         msg_type='warning')
-        elif recognized_text == "reset":
+
+        elif recognized_text in ["reset", "reset all"]:
             self.reset()
+        elif recognized_text == "reset photos":
+            self.reset_photos()
+        elif recognized_text in ["reset reps", "reset rep counter"]:
+            self.reset_rep_counter()
+
         elif recognized_text == "clean":
             self.clean()
         elif recognized_text == "save model":
@@ -276,6 +284,45 @@ class App:
             self.load_model()
         elif recognized_text == "save results":
             self.save_results()
+
+        elif recognized_text == "choose auto classifier":
+            self.chosen_classifier.set(CLASSIFIERS[0])
+        elif recognized_text == "choose linear classifier":
+            self.chosen_classifier.set(CLASSIFIERS[1])
+        elif recognized_text == "choose neighbors classifier":
+            self.chosen_classifier.set(CLASSIFIERS[2])
+        elif recognized_text == "choose random forest classifier":
+            self.chosen_classifier.set(CLASSIFIERS[3])
+
+        elif recognized_text == "choose one photo":
+            self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
+        elif recognized_text == "choose ten photo":
+            self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[1])
+        elif recognized_text == "choose twenty five photos":
+            self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[2])
+        elif recognized_text == "choose fifty photos":
+            self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[3])
+
+        elif recognized_text == "take photos immediately":
+            self.chosen_delay.set(DELAY_OPTIONS[0])
+        elif recognized_text == "take photos after one second delay":
+            self.chosen_delay.set(DELAY_OPTIONS[1])
+        elif recognized_text == "take photos after three second delay":
+            self.chosen_delay.set(DELAY_OPTIONS[2])
+        elif recognized_text == "take photos after five second delay":
+            self.chosen_delay.set(DELAY_OPTIONS[3])
+
+        elif recognized_text == "reset exercise":
+            self.chosen_exercise.set(EXERCISE_OPTIONS[0])
+        elif recognized_text == "exercise bicep curls":
+            self.chosen_exercise.set(EXERCISE_OPTIONS[1])
+        elif recognized_text == "exercise push ups":
+            self.chosen_exercise.set(EXERCISE_OPTIONS[2])
+        elif recognized_text == "exercise pull ups":
+            self.chosen_exercise.set(EXERCISE_OPTIONS[3])
+        elif recognized_text == "exercise squats":
+            self.chosen_exercise.set(EXERCISE_OPTIONS[4])
+
         else:
             self.logger.log_message(
                 message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
