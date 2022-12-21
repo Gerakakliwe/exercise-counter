@@ -28,6 +28,8 @@ CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
 DELAY_OPTIONS = ['Immediately', '1 sec delay', '3 sec delay', '5 sec delay']
 EXERCISE_OPTIONS = ["CHOOSE EXERCISE", 'Bicep-curls', 'Push-ups', 'Pull-ups', 'Squats']
+DATES_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18",
+                 "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"]
 
 
 def background(f):
@@ -227,8 +229,9 @@ class App:
                                           height=2, width=14, font=("Arial", 14), state="disabled")
         self.btn_save_results.grid(row=6, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
-        self.btn_reset_reps = tk.Button(self.tab2, text="RESET REPS", command=self.reset_rep_counter, height=2, width=14,
-                                   font=("Arial", 14))
+        self.btn_reset_reps = tk.Button(self.tab2, text="RESET REPS", command=self.reset_rep_counter, height=2,
+                                        width=14,
+                                        font=("Arial", 14))
         self.btn_reset_reps.grid(row=7, column=0, columnspan='2', padx=5, pady=5, stick='we')
 
         #########
@@ -236,11 +239,29 @@ class App:
         #########
         self.statistics_canvas = FigureCanvasTkAgg(self.statistics, master=self.tab3)
         self.statistics_canvas.draw()
-        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, stick='we')
+        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, columnspan='2', stick='we')
 
         self.btn_update_canvas = tk.Button(self.tab3, text="UPDATE", command=lambda: self.redraw_statistics(),
-                                          height=2, width=14, font=("Arial", 14))
-        self.btn_update_canvas.grid(row=1, column=0, padx=5, pady=5, stick='we')
+                                           height=2, width=14, font=("Arial", 14))
+        self.btn_update_canvas.grid(row=1, column=0, columnspan='2', padx=5, pady=5, stick='we')
+
+        self.label_from_date = tk.Label(self.tab3, text="FROM", font=("Arial", 14))
+        self.label_from_date.grid(row=2, column=0, padx=5, stick='we')
+
+        self.label_from_date = tk.Label(self.tab3, text="TO", font=("Arial", 14))
+        self.label_from_date.grid(row=2, column=1, padx=5, stick='we')
+
+        self.chosen_start_date = StringVar()
+        self.chosen_start_date.set(DATES_OPTIONS[0])
+        self.cb_dates = tk.OptionMenu(self.tab3, self.chosen_start_date, *DATES_OPTIONS)
+        self.cb_dates.config(width=5, height=2, font=("Arial", 14))
+        self.cb_dates.grid(row=3, column=0, padx=5, pady=5, stick='we')
+
+        self.chosen_end_date = StringVar()
+        self.chosen_end_date.set(DATES_OPTIONS[-1])
+        self.cb_dates = tk.OptionMenu(self.tab3, self.chosen_end_date, *DATES_OPTIONS)
+        self.cb_dates.config(width=5, height=2, font=("Arial", 14))
+        self.cb_dates.grid(row=3, column=1, padx=5, pady=10, stick='we')
 
         ###########
         # GENERAL #
@@ -584,7 +605,7 @@ class App:
         ind = np.arange(N)
         width = 0.22
 
-        fig = Figure(figsize=(6.45, 9))
+        fig = Figure(figsize=(6.45, 8.2))
         ax = fig.add_subplot(111)
 
         sorted_by_exercise = training_data.groupby(['date', 'exercise'])['reps'].sum().reset_index().groupby('exercise')
@@ -614,5 +635,4 @@ class App:
         self.statistics = self.pack_statistics()
         self.statistics_canvas = FigureCanvasTkAgg(self.statistics, master=self.tab3)
         self.statistics_canvas.draw()
-        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, stick='we')
-
+        self.statistics_canvas.get_tk_widget().grid(row=0, column=0, columnspan="2", stick='we')
