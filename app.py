@@ -125,8 +125,8 @@ class App:
                                               font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, stick='we')
 
-        self.label_toggle_speech_rc = tk.Label(self.tab1, text="OFF", font=("Arial", 36))
-        self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, stick='we')
+        self.label_toggle_speech_rc_tab1 = tk.Label(self.tab1, text="OFF", font=("Arial", 36))
+        self.label_toggle_speech_rc_tab1.grid(row=1, column=1, padx=5, stick='we')
 
         self.chosen_photo_amount_per_click = StringVar()
         self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
@@ -204,8 +204,8 @@ class App:
                                               font=("Arial", 14))
         self.btn_toggle_speech_rc.grid(row=1, column=0, padx=5, pady=5, stick='we')
 
-        self.label_toggle_speech_rc = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
-        self.label_toggle_speech_rc.grid(row=1, column=1, padx=5, pady=5, stick='we')
+        self.label_toggle_speech_rc_tab2 = tk.Label(self.tab2, text="OFF", font=("Arial", 36))
+        self.label_toggle_speech_rc_tab2.grid(row=1, column=1, padx=5, pady=5, stick='we')
 
         self.btn_toggle_count = tk.Button(self.tab2, text="COUNTING", command=lambda: self.toggle_counting(),
                                           height=2, width=14, font=("Arial", 14), state="disabled")
@@ -277,9 +277,9 @@ class App:
 
         self.logger.log_message("Executing recognized text...")
         if recognized_text == "first class":
-            self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]))
+            self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]), self.chosen_delay.get())
         elif recognized_text == "second class":
-            self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]))
+            self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]), self.chosen_delay.get())
         elif recognized_text in ["train model", "train"]:
             self.toggle_train_model()
 
@@ -434,9 +434,11 @@ class App:
             self.label_toggle_count.config(text="OFF")
 
         if self.recognition_enabled:
-            self.label_toggle_speech_rc.config(text="ON")
+            self.label_toggle_speech_rc_tab1.config(text="ON")
+            self.label_toggle_speech_rc_tab2.config(text="ON")
         else:
-            self.label_toggle_speech_rc.config(text="OFF")
+            self.label_toggle_speech_rc_tab1.config(text="OFF")
+            self.label_toggle_speech_rc_tab2.config(text="OFF")
 
         if self.model_trained:
             self.label_toggle_train.config(text="TRAINED")
@@ -568,7 +570,6 @@ class App:
         writer.writerow(training_result)
         f.close()
 
-        self.toggle_counting()
         self.logger.log_message(message="Results have been saved", msg_type='success')
 
     def init_results_for_today(self):
@@ -636,3 +637,4 @@ class App:
         self.statistics_canvas = FigureCanvasTkAgg(self.statistics, master=self.tab3)
         self.statistics_canvas.draw()
         self.statistics_canvas.get_tk_widget().grid(row=0, column=0, columnspan="2", stick='we')
+        self.logger.log_message(message="Statistics have been updated", msg_type='success')
