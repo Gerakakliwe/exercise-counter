@@ -140,7 +140,7 @@ class App:
         self.cb_delay_options.config(width=12, height=2, font=("Arial", 14))
         self.cb_delay_options.grid(row=2, column=1, padx=5, stick='we')
 
-        self.btn_class_one = tk.Button(self.tab1, text="CONTRACTED",
+        self.btn_class_one = tk.Button(self.tab1, text="START POSITION",
                                        command=lambda: self.take_photo_for_class(1,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
                                                                                      5:]), self.chosen_delay.get()),
@@ -148,7 +148,7 @@ class App:
                                        width=14, font=("Arial", 14))
         self.btn_class_one.grid(row=3, column=0, padx=5, stick='we')
 
-        self.btn_class_two = tk.Button(self.tab1, text="EXTENDED",
+        self.btn_class_two = tk.Button(self.tab1, text="END POSITION",
                                        command=lambda: self.take_photo_for_class(2,
                                                                                  int(self.chosen_photo_amount_per_click.get()[
                                                                                      5:]), self.chosen_delay.get()),
@@ -446,8 +446,8 @@ class App:
             self.label_toggle_train.config(text="UNTRAINED")
 
         # Update number of photos taken for each class
-        self.btn_class_one['text'] = f"CONTRACTED ({self.counters[0]})"
-        self.btn_class_two['text'] = f"EXTENDED ({self.counters[1]})"
+        self.btn_class_one['text'] = f"START POSITION ({self.counters[0]})"
+        self.btn_class_two['text'] = f"END POSITION ({self.counters[1]})"
 
         # Update number of reps
         self.label_rep_counter.config(text=f"REPS: {self.rep_counter}")
