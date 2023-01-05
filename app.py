@@ -315,22 +315,22 @@ class App:
         elif recognized_text == "choose random forest classifier":
             self.chosen_classifier.set(CLASSIFIERS[3])
 
-        elif recognized_text == "choose one photo":
+        elif recognized_text == "choose 1 photo":
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
-        elif recognized_text == "choose ten photo":
+        elif recognized_text == "choose 10 photos":
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[1])
-        elif recognized_text == "choose twenty five photos":
+        elif recognized_text == "choose 20 photos":
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[2])
-        elif recognized_text == "choose fifty photos":
+        elif recognized_text == "choose 50 photos":
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[3])
 
-        elif recognized_text == "take photos immediately":
+        elif recognized_text == "no delay":
             self.chosen_delay.set(DELAY_OPTIONS[0])
-        elif recognized_text == "take photos after one second delay":
+        elif recognized_text == "delay 1 second":
             self.chosen_delay.set(DELAY_OPTIONS[1])
-        elif recognized_text == "take photos after three second delay":
+        elif recognized_text == "delay 3 seconds":
             self.chosen_delay.set(DELAY_OPTIONS[2])
-        elif recognized_text == "take photos after five second delay":
+        elif recognized_text == "delay 5 seconds":
             self.chosen_delay.set(DELAY_OPTIONS[3])
 
         elif recognized_text == "reset exercise":
@@ -339,7 +339,7 @@ class App:
             self.chosen_exercise.set(EXERCISE_OPTIONS[1])
         elif recognized_text == "exercise push ups":
             self.chosen_exercise.set(EXERCISE_OPTIONS[2])
-        elif recognized_text == "exercise pull ups":
+        elif recognized_text == "exercise pull-ups":
             self.chosen_exercise.set(EXERCISE_OPTIONS[3])
         elif recognized_text == "exercise squats":
             self.chosen_exercise.set(EXERCISE_OPTIONS[4])
@@ -375,7 +375,7 @@ class App:
             self.logger.log_message(message=f"Model successfully trained using {str(self.model.model)[:-2]}",
                                     msg_type='success')
         except Exception:
-            self.logger.log_message(message="Couldn't train model, take photo for both classes", msg_type='warning')
+            self.logger.log_message(message="Couldn't train model, take more photo for both classes", msg_type='warning')
 
     def load_model(self):
         try:
@@ -531,7 +531,7 @@ class App:
         self.model_trained = False
         self.counting_enabled = False
         self.recognition_enabled = False
-        self.logger.log_message("All data has been reset", msg_type='warning')
+        self.logger.log_message("Data has been reset", msg_type='warning')
 
     def reset_photos(self):
         if os.path.exists("1"):
@@ -539,7 +539,7 @@ class App:
         if os.path.exists("2"):
             shutil.rmtree("2")
         self.counters = [0, 0]
-        self.logger.log_message("Photos has been reset", msg_type='warning')
+        self.logger.log_message("Photos have been reset", msg_type='warning')
 
     def reset_rep_counter(self):
         self.rep_counter = 0
