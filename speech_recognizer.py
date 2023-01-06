@@ -9,7 +9,7 @@ class SpeechRecognizer:
     def recognize_speech(self):
         with sr.Microphone() as source:
             self.recognizer.adjust_for_ambient_noise(source, duration=0.2)
-            audio = self.recognizer.listen(source, phrase_time_limit=5)
+            audio = self.recognizer.listen(source, phrase_time_limit=10)
             recognized_text = self.recognizer.recognize_google(audio).lower()
 
         return recognized_text

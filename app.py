@@ -317,11 +317,11 @@ class App:
 
         elif recognized_text == "choose 1 photo":
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[0])
-        elif recognized_text == "choose 10 photos":
+        elif recognized_text in ["choose 10 photos", "take 10 photos"]:
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[1])
-        elif recognized_text == "choose 20 photos":
+        elif recognized_text in ["choose 25 photos", "take 25 photos"]:
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[2])
-        elif recognized_text == "choose 50 photos":
+        elif recognized_text in ["choose 50 photos", "take 50 photos"]:
             self.chosen_photo_amount_per_click.set(PHOTO_BATCH_OPTIONS[3])
 
         elif recognized_text == "no delay":
@@ -351,17 +351,20 @@ class App:
 
     @background
     def toggle_speech_recognition(self):
+        if self.recognition_enabled == True:
+            self.recognition_enabled = False
+            self.logger.log_message(f"Speech recognition has been disabled")
+            return
+
         self.recognition_enabled = True
         self.logger.log_message(f"Speech recognition has been enabled")
-        if self.recognition_enabled:
+        while self.recognition_enabled:
             try:
                 self.recognized_text = self.recognizer.recognize_speech()
                 self.logger.log_message(f"You said: {self.recognized_text}")
             except Exception:
-                self.logger.log_message(message="Couldn't recognize text, push the button once more",
+                self.logger.log_message(message="Couldn't recognize text, try once more",
                                         msg_type='warning')
-        self.recognition_enabled = False
-        self.logger.log_message(f"Speech recognition has been disabled")
 
     @background
     def toggle_train_model(self):
