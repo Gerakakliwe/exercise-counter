@@ -305,6 +305,8 @@ class App:
             self.load_model()
         elif recognized_text == "save results":
             self.save_results()
+        elif recognized_text == "turn off speech recognition":
+            self.toggle_speech_recognition()
 
         elif recognized_text == "choose auto classifier":
             self.chosen_classifier.set(CLASSIFIERS[0])
