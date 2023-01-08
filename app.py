@@ -1,28 +1,27 @@
-import datetime
+import asyncio
 import csv
+import datetime
+import os
+import pickle
 import shutil
 import time
 import tkinter as tk
-from tkinter import ttk
 import tkinter.filedialog
 from tkinter import StringVar
-import os
+from tkinter import ttk
 from tkinter.ttk import Style
-
-import PIL.Image, PIL.ImageTk
+import PIL.Image
+import PIL.ImageTk
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-
+from playsound import playsound
 import camera
 import logger
 import model
 import speech_recognizer
-import asyncio
-import pickle
-import pandas as pd
 
 CLASSIFIERS = ['AUTO (BEST)', 'LinearSVC', 'KNeighbors', 'RandomForest']
 PHOTO_BATCH_OPTIONS = ['Take 1', 'Take 10', 'Take 25', 'Take 50']
@@ -273,19 +272,23 @@ class App:
         self.btn_clean = tk.Button(self.window, text="CLEAN", command=self.clean, height=2, font=("Arial", 14))
         self.btn_clean.grid(row=0, column=1, padx=5, pady=5, stick='se')
 
+
     def execute_recognized_text(self, recognized_text):
 
         self.logger.log_message("Executing recognized text...")
         if recognized_text == "first class":
             self.take_photo_for_class(1, int(self.chosen_photo_amount_per_click.get()[5:]), self.chosen_delay.get())
+            self.play_sound()
         elif recognized_text == "second class":
             self.take_photo_for_class(2, int(self.chosen_photo_amount_per_click.get()[5:]), self.chosen_delay.get())
+            self.play_sound()
         elif recognized_text in ["train model", "train"]:
             self.toggle_train_model()
 
         elif recognized_text == "count":
             if self.model_trained:
                 self.toggle_counting()
+                self.play_sound(u"sound/finished-task-206.mp3")
             else:
                 self.logger.log_message(message="Can't start counting until model is trained",
                                         msg_type='warning')
@@ -348,7 +351,7 @@ class App:
 
         else:
             self.logger.log_message(
-                message="Try once more, you can use phrases like:\nfirst class, second class, train model, count, reset, clean",
+                message="Wrong phrase Try once more",
                 msg_type='warning')
 
     @background
@@ -365,8 +368,9 @@ class App:
                 self.recognized_text = self.recognizer.recognize_speech()
                 self.logger.log_message(f"You said: {self.recognized_text}")
             except Exception:
-                self.logger.log_message(message="Couldn't recognize text, try once more",
-                                        msg_type='warning')
+                pass
+                # self.logger.log_message(message="Couldn't recognize text, try once more",
+                #                         msg_type='warning')
 
     @background
     def toggle_train_model(self):
@@ -424,6 +428,7 @@ class App:
 
         if self.recognized_text:
             self.execute_recognized_text(self.recognized_text)
+            self.play_sound()
             self.recognized_text = None
 
         # Rep is done, increment counter, write log message
@@ -643,3 +648,7 @@ class App:
         self.statistics_canvas.draw()
         self.statistics_canvas.get_tk_widget().grid(row=0, column=0, columnspan="2", stick='we')
         self.logger.log_message(message="Statistics have been updated", msg_type='success')
+
+    @background
+    def play_sound(self, source=u"sound/elegant-notification-sound.mp3"):
+        playsound(source)
